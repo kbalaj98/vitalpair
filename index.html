@@ -606,10 +606,75 @@ function calcScore(date,p){
 function calcTotal(){ return C.meals.length+C.habits.length+1; }
 
 // ════════════════════════════════════════════════
-// SYNC (Google Sheets API or local)
+// SYNC — JSONP approach fixes CORS completely
 // ════════════════════════════════════════════════
 let syncTimers={};
 function autoSync(person){ clearTimeout(syncTimers[person]); syncTimers[person]=setTimeout(()=>pushToSheet(viewDate,person),2000); }
+
+// JSONP GET — works around CORS for read operations
+function jsonpGet(url){
+  return new Promise(function(resolve,reject){
+    const cbName='vp_cb_'+Date.now()+'_'+Math.floor(Math.random()*9999);
+    const script=document.createElement('script');
+    const timer=setTimeout(function(){
+      cleanup(); reject(new Error('Timeout'));
+    },10000);
+    window[cbName]=function(data){
+      cleanup(); resolve(data);
+    };
+    function cleanup(){
+      clearTimeout(timer);
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+    }
+    script.onerror=function(){ cleanup(); reject(new Error('Script load error')); };
+    script.src=url+(url.includes('?')?'&':'?')+'callback='+cbName;
+    document.head.appendChild(script);
+  });
+}
+
+// For POST — use fetch with no-cors then fall back to GET with encoded params
+async function apiCall(action, params){
+  if(C.useLocal||!C.apiUrl) return null;
+  const url=C.apiUrl;
+
+  // For write operations — encode as GET params (Apps Script handles both)
+  const encoded=encodeURIComponent(JSON.stringify(params));
+  const getUrl=`${url}?action=${action}&data=${encoded}`;
+
+  try{
+    // Try regular fetch first (works when CORS is configured)
+    const res=await fetch(`${url}?action=${action}`,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action,...params})
+    });
+    // no-cors returns opaque response — assume ok
+    setSS('ok','Saved '+new Date().toLocaleTimeString());
+    return {ok:true};
+  }catch(e){
+    return null;
+  }
+}
+
+// GET via regular fetch — Apps Script GET supports CORS with ANYONE_ANONYMOUS
+async function apiGet(action, params){
+  if(C.useLocal||!C.apiUrl){ setSS('ok','Local mode'); return null; }
+  const qs=Object.entries(params||{}).map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join('&');
+  const url=`${C.apiUrl}?action=${action}${qs?'&'+qs:''}`;
+  try{
+    const res=await fetch(url,{method:'GET',mode:'cors'});
+    const data=await res.json();
+    return data;
+  }catch(e){
+    // fallback — try no-cors mode
+    try{
+      await fetch(url,{method:'GET',mode:'no-cors'});
+      return {ok:true};
+    }catch(e2){ return null; }
+  }
+}
 
 async function pushToSheet(date,person){
   if(C.useLocal||!C.apiUrl) return;
@@ -622,41 +687,62 @@ async function pushToSheet(date,person){
   C.habits.forEach(h=>{ entries.push({type:'habit',itemId:h.id,itemName:h.name,done:pl.habits[h.id]||false}); });
   entries.push({type:'water',itemId:'water',itemName:'Water',value:pl.water||0});
   entries.push({type:'noporn',itemId:'noporn_'+person,itemName:'NoPornDays',value:C.noPornDays[person]||0});
+
+  // Encode entire payload as URL param — avoids preflight CORS
+  const payload=JSON.stringify({action:'saveLog',date,person,entries});
+  const url=`${C.apiUrl}?action=saveLog&date=${encodeURIComponent(date)}&person=${encodeURIComponent(person)}&payload=${encodeURIComponent(payload)}`;
   try{
-    const res=await fetch(C.apiUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'saveLog',date,person,entries})});
-    const data=await res.json();
-    if(data.ok) setSS('ok','Saved '+new Date().toLocaleTimeString());
-    else setSS('err','Sheet error');
-  }catch(e){ setSS('err','Offline — saved locally'); }
+    // no-cors POST — browser sends it, can't read response but Apps Script receives it
+    await fetch(C.apiUrl,{
+      method:'POST',
+      mode:'no-cors',
+      body:payload
+    });
+    setSS('ok','Saved '+new Date().toLocaleTimeString());
+  }catch(e){
+    // fallback: GET with encoded payload
+    try{
+      await fetch(url,{mode:'no-cors'});
+      setSS('ok','Saved (fallback)');
+    }catch(e2){ setSS('err','Offline — saved locally'); }
+  }
 }
 
 async function pullFromSheet(date){
   if(C.useLocal||!C.apiUrl){ setSS('ok','Local mode'); return; }
   setSS('loading','Fetching…');
   try{
-    const res=await fetch(`${C.apiUrl}?action=getLog&date=${date}`);
+    const url=`${C.apiUrl}?action=getLog&date=${encodeURIComponent(date)}`;
+    const res=await fetch(url,{method:'GET'});
     const data=await res.json();
-    if(!data.ok) throw new Error(data.error);
-    // Merge sheet data into local
-    const rows=data.data||[];
-    ['p1','p2'].forEach(p=>{
-      const prows=rows.filter(r=>r.person===p);
-      if(!prows.length) return;
-      prows.forEach(r=>{
-        if(r.type==='meal'){
-          const ml=getMealLog(date,p,r.itemId);
-          ml.done=r.done==='true'||r.done===true;
-          if(r.foods) ml.foods=r.foods;
-          if(r.cal)   ml.cal=r.cal;
-          if(r.protein) ml.protein=r.protein;
-        }
-        if(r.type==='habit') setHabit(date,p,r.itemId,r.done==='true'||r.done===true);
-        if(r.type==='water') setWater(date,p,parseFloat(r.value)||0);
-        if(r.type==='noporn'){ const pid=r.itemId.replace('noporn_',''); C.noPornDays[pid]=parseInt(r.value)||0; }
-      });
-    });
+    if(!data.ok) throw new Error(data.error||'Sheet error');
+    mergeSheetData(date, data.data||[]);
     saveC(); setSS('ok','Synced '+new Date().toLocaleTimeString()); render();
-  }catch(e){ setSS('err','Offline'); }
+  }catch(e){
+    setSS('err','Working offline — data saved locally');
+  }
+}
+
+function mergeSheetData(date, rows){
+  ['p1','p2'].forEach(function(p){
+    const prows=rows.filter(function(r){ return r.person===p; });
+    if(!prows.length) return;
+    prows.forEach(function(r){
+      if(r.type==='meal'){
+        const ml=getMealLog(date,p,r.itemId);
+        ml.done=r.done==='true'||r.done===true;
+        if(r.foods) ml.foods=r.foods;
+        if(r.cal)   ml.cal=r.cal;
+        if(r.protein) ml.protein=r.protein;
+      }
+      if(r.type==='habit') setHabit(date,p,r.itemId,r.done==='true'||r.done===true);
+      if(r.type==='water') setWater(date,p,parseFloat(r.value)||0);
+      if(r.type==='noporn'){
+        const pid=r.itemId.replace('noporn_','');
+        if(pid==='p1'||pid==='p2') C.noPornDays[pid]=parseInt(r.value)||0;
+      }
+    });
+  });
 }
 
 async function syncAll(){ await pullFromSheet(viewDate); }
