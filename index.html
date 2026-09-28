@@ -1357,7 +1357,7 @@ async function testUrl(){
         {p:'p1',n:C.profiles.p1.name},
         {p:'p2',n:C.profiles.p2.name}
       ].map(function(pr){
-        return '<div onclick="pickWho(''+pr.p+'')" id="who-'+pr.p+'" style="flex:1;border:2px solid var(--bd);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:.2s;background:var(--s1);">'
+        return '<div onclick="pickWho(\''+pr.p+'\')" id="who-'+pr.p+'" style="flex:1;border:2px solid var(--bd);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:.2s;background:var(--s1);">'
           +'<div style="font-size:22px;margin-bottom:6px;">'+(pr.p==='p1'?'👨':'👩‍⚕️')+'</div>'
           +'<div style="font-size:13px;font-weight:600;">'+pr.n+'</div>'
           +'</div>';
