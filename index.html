@@ -1464,6 +1464,22 @@ async function init(){
   await pullFromSheet(viewDate);
 }
 
+// Expose all functions globally so onclick handlers work
+window.testUrl=testUrl; window.skipLocal=skipLocal; window.saveProfile=saveProfile;
+window.confirmWho=confirmWho; window.pickWho=pickWho; window.goto=goto;
+window.openMod=openMod; window.closeMod=closeMod; window.selProf=selProf;
+window.syncAll=syncAll; window.togMealDone=togMealDone; window.togHabit=togHabit;
+window.updWater=updWater; window.chgNP=chgNP; window.rstNP=rstNP;
+window.toggleMealExpand=toggleMealExpand; window.onFoodInput=onFoodInput;
+window.onCalInput=onCalInput; window.onProteinInput=onProteinInput;
+window.addFoodTag=addFoodTag; window.openMealModal=openMealModal;
+window.saveMealSlot=saveMealSlot; window.delMealSlot=delMealSlot;
+window.openHabitModal=openHabitModal; window.saveHabit=saveHabit;
+window.delHabit=delHabit; window.saveCfgLive=saveCfgLive;
+window.reconnect=reconnect; window.resetApp=resetApp;
+window.loadAnalytics=loadAnalytics; window.loadHistory=loadHistory;
+window.exportCSV=exportCSV; window.exportJSON=exportJSON; window.importJSON=importJSON;
+
 loadC();
 if(C.setup){
   document.getElementById('gate').style.display='none';
