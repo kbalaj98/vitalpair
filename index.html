@@ -627,105 +627,60 @@ function calcScore(date,p){
 function calcTotal(){ return C.meals.length+C.habits.length+1; }
 
 // ════════════════════════════════════════════════
-// SYNC — JSONP approach fixes CORS completely
+// SYNC — debounced, lock-protected, no duplicates
 // ════════════════════════════════════════════════
-let syncTimers={};
-function autoSync(person){ clearTimeout(syncTimers[person]); syncTimers[person]=setTimeout(()=>pushToSheet(viewDate,person),2000); }
+let syncTimers  = {};
+let syncLock    = {}; // prevent overlapping pushes
+let pendingSync = {}; // track if another sync waiting
 
-// JSONP GET — works around CORS for read operations
-function jsonpGet(url){
-  return new Promise(function(resolve,reject){
-    const cbName='vp_cb_'+Date.now()+'_'+Math.floor(Math.random()*9999);
-    const script=document.createElement('script');
-    const timer=setTimeout(function(){
-      cleanup(); reject(new Error('Timeout'));
-    },10000);
-    window[cbName]=function(data){
-      cleanup(); resolve(data);
-    };
-    function cleanup(){
-      clearTimeout(timer);
-      delete window[cbName];
-      if(script.parentNode) script.parentNode.removeChild(script);
+// Debounce: wait 3 seconds after last change before pushing
+function autoSync(person){
+  clearTimeout(syncTimers[person]);
+  syncTimers[person] = setTimeout(function(){
+    pushToSheet(viewDate, person);
+  }, 3000);
+}
+
+async function pushToSheet(date, person){
+  if(C.useLocal || !C.apiUrl) return;
+
+  // If a push is already running for this person+date, mark pending and return
+  const lockKey = date + '_' + person;
+  if(syncLock[lockKey]){
+    pendingSync[lockKey] = true;
+    return;
+  }
+
+  syncLock[lockKey] = true;
+  setSS('loading', 'Saving...');
+
+  const pl = getPersonLog(date, person);
+  const entries = [];
+  C.meals.forEach(function(m){
+    const ml = pl.meals[m.id] || {};
+    entries.push({type:'meal', itemId:m.id, itemName:m.name,
+      done:ml.done||false, foods:ml.foods||'', cal:ml.cal||'', protein:ml.protein||''});
+  });
+  C.habits.forEach(function(h){
+    entries.push({type:'habit', itemId:h.id, itemName:h.name, done:pl.habits[h.id]||false});
+  });
+  entries.push({type:'water',  itemId:'water',          itemName:'Water',      value:pl.water||0});
+  entries.push({type:'noporn', itemId:'noporn_'+person, itemName:'NoPornDays', value:C.noPornDays[person]||0});
+
+  const payload = JSON.stringify({action:'saveLog', date:date, person:person, entries:entries});
+
+  try{
+    await fetch(C.apiUrl, {method:'POST', mode:'no-cors', body:payload});
+    setSS('ok', 'Saved ' + new Date().toLocaleTimeString());
+  }catch(e){
+    setSS('err', 'Offline — saved locally');
+  }finally{
+    syncLock[lockKey] = false;
+    // If another sync was waiting, run it now
+    if(pendingSync[lockKey]){
+      pendingSync[lockKey] = false;
+      pushToSheet(date, person);
     }
-    script.onerror=function(){ cleanup(); reject(new Error('Script load error')); };
-    script.src=url+(url.includes('?')?'&':'?')+'callback='+cbName;
-    document.head.appendChild(script);
-  });
-}
-
-// For POST — use fetch with no-cors then fall back to GET with encoded params
-async function apiCall(action, params){
-  if(C.useLocal||!C.apiUrl) return null;
-  const url=C.apiUrl;
-
-  // For write operations — encode as GET params (Apps Script handles both)
-  const encoded=encodeURIComponent(JSON.stringify(params));
-  const getUrl=`${url}?action=${action}&data=${encoded}`;
-
-  try{
-    // Try regular fetch first (works when CORS is configured)
-    const res=await fetch(`${url}?action=${action}`,{
-      method:'POST',
-      mode:'no-cors',
-      headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({action,...params})
-    });
-    // no-cors returns opaque response — assume ok
-    setSS('ok','Saved '+new Date().toLocaleTimeString());
-    return {ok:true};
-  }catch(e){
-    return null;
-  }
-}
-
-// GET via regular fetch — Apps Script GET supports CORS with ANYONE_ANONYMOUS
-async function apiGet(action, params){
-  if(C.useLocal||!C.apiUrl){ setSS('ok','Local mode'); return null; }
-  const qs=Object.entries(params||{}).map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join('&');
-  const url=`${C.apiUrl}?action=${action}${qs?'&'+qs:''}`;
-  try{
-    const res=await fetch(url,{method:'GET',mode:'cors'});
-    const data=await res.json();
-    return data;
-  }catch(e){
-    // fallback — try no-cors mode
-    try{
-      await fetch(url,{method:'GET',mode:'no-cors'});
-      return {ok:true};
-    }catch(e2){ return null; }
-  }
-}
-
-async function pushToSheet(date,person){
-  if(C.useLocal||!C.apiUrl) return;
-  const pl=getPersonLog(date,person);
-  const entries=[];
-  C.meals.forEach(m=>{
-    const ml=pl.meals[m.id]||{};
-    entries.push({type:'meal',itemId:m.id,itemName:m.name,done:ml.done||false,foods:ml.foods||'',cal:ml.cal||'',protein:ml.protein||''});
-  });
-  C.habits.forEach(h=>{ entries.push({type:'habit',itemId:h.id,itemName:h.name,done:pl.habits[h.id]||false}); });
-  entries.push({type:'water',itemId:'water',itemName:'Water',value:pl.water||0});
-  entries.push({type:'noporn',itemId:'noporn_'+person,itemName:'NoPornDays',value:C.noPornDays[person]||0});
-
-  // Encode entire payload as URL param — avoids preflight CORS
-  const payload=JSON.stringify({action:'saveLog',date,person,entries});
-  const url=`${C.apiUrl}?action=saveLog&date=${encodeURIComponent(date)}&person=${encodeURIComponent(person)}&payload=${encodeURIComponent(payload)}`;
-  try{
-    // no-cors POST — browser sends it, can't read response but Apps Script receives it
-    await fetch(C.apiUrl,{
-      method:'POST',
-      mode:'no-cors',
-      body:payload
-    });
-    setSS('ok','Saved '+new Date().toLocaleTimeString());
-  }catch(e){
-    // fallback: GET with encoded payload
-    try{
-      await fetch(url,{mode:'no-cors'});
-      setSS('ok','Saved (fallback)');
-    }catch(e2){ setSS('err','Offline — saved locally'); }
   }
 }
 
