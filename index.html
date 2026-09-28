@@ -274,19 +274,40 @@ select.inp{appearance:none;}
         <span style="font-size:11px;color:var(--dim);cursor:pointer;text-decoration:underline;" onclick="skipLocal()">Use offline / local only</span>
       </div>
     </div>
+    <!-- Step 2: Loading -->
     <div class="gstep" id="gs2">
-      <div class="gtitle">Your profiles</div>
-      <div class="lbl">Your name</div>
+      <div style="text-align:center;padding:24px 0;">
+        <div style="font-size:32px;margin-bottom:12px;">⏳</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Checking Sheet...</div>
+        <div style="font-size:11px;color:var(--dim);">Fetching existing profiles from your Sheet</div>
+      </div>
+    </div>
+
+    <!-- Step 3: First time setup -->
+    <div class="gstep" id="gs3">
+      <div class="gtitle">Setup profiles</div>
+      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:9px;padding:10px;font-size:11px;color:var(--dim);margin-bottom:14px;">
+        Only needs to be done once. The second person's phone will auto-fetch these details.
+      </div>
+      <div class="lbl">Person 1 name</div>
       <input class="inp" id="g-p1" placeholder="e.g. Ravi">
-      <div class="lbl">You are</div>
-      <select class="inp" id="g-who"><option value="p1">Person 1</option><option value="p2">Person 2</option></select>
-      <div class="lbl">Partner's name</div>
+      <div class="lbl">Person 2 name</div>
       <input class="inp" id="g-p2" placeholder="e.g. Priya">
       <div style="display:flex;gap:8px;margin-top:10px;">
-        <div style="flex:1;"><div class="lbl">Your water target (L)</div><input class="inp" type="number" id="g-wt1" value="2" step="0.25" min="0.5"></div>
-        <div style="flex:1;"><div class="lbl">Partner water target (L)</div><input class="inp" type="number" id="g-wt2" value="2" step="0.25" min="0.5"></div>
+        <div style="flex:1;"><div class="lbl">P1 water target (L)</div><input class="inp" type="number" id="g-wt1" value="2" step="0.25" min="0.5"></div>
+        <div style="flex:1;"><div class="lbl">P2 water target (L)</div><input class="inp" type="number" id="g-wt2" value="2" step="0.25" min="0.5"></div>
       </div>
-      <div class="btn-row"><button class="btn btn-g btn-full" onclick="saveProfile()">Start Tracking</button></div>
+      <div class="lbl">I am</div>
+      <select class="inp" id="g-who"><option value="p1">Person 1</option><option value="p2">Person 2</option></select>
+      <div class="btn-row"><button class="btn btn-g btn-full" onclick="saveProfile()">Save & Start</button></div>
+    </div>
+
+    <!-- Step 4: Returning user — just pick who you are -->
+    <div class="gstep" id="gs4">
+      <div class="gtitle">Welcome back!</div>
+      <div style="font-size:12px;color:var(--dim);margin-bottom:16px;">Profiles loaded from Sheet. Who are you on this device?</div>
+      <div id="gs4-profiles" style="display:flex;gap:10px;margin-bottom:16px;"></div>
+      <div class="btn-row"><button class="btn btn-g btn-full" onclick="confirmWho()">Start Tracking</button></div>
     </div>
   </div>
 </div>
@@ -1294,28 +1315,124 @@ async function reconnect(){ C.apiUrl=document.getElementById('s-url').value.trim
 function resetApp(){ if(!confirm('Reset everything?')) return; localStorage.removeItem(LS); location.reload(); }
 
 // ════════════════════════════════════════════════
-// ONBOARDING
+// ONBOARDING — smart profile fetch
 // ════════════════════════════════════════════════
+
+let selectedWho = 'p1'; // used in gs4 step
+
+function showGateStep(id){
+  ['gs1','gs2','gs3','gs4'].forEach(function(s){
+    const el=document.getElementById(s);
+    if(el) el.className='gstep'+(s===id?' on':'');
+  });
+}
+
 async function testUrl(){
   const url=document.getElementById('g-url').value.trim();
   if(!url){toast('Paste URL first'); return;}
-  setSS('loading','Testing…');
+  setSS('loading','Testing...');
+
+  // Save URL first
+  C.apiUrl=url; saveC();
+
+  // Show loading step
+  showGateStep('gs2');
+
   try{
-    const res=await fetch(`${url}?action=getConfig`);
+    // Fetch existing config from Sheet
+    const res=await fetch(url+'?action=getConfig');
     const data=await res.json();
-    C.apiUrl=url; saveC();
-    document.getElementById('gs1').classList.remove('on');
-    document.getElementById('gs2').classList.add('on');
-  }catch(e){ toast('Connection failed — check URL'); setSS('err','Connection failed'); }
+
+    if(data.ok && data.data && data.data.p1name){
+      // Profiles already exist in Sheet — load them
+      C.profiles.p1.name        = data.data.p1name        || 'Person 1';
+      C.profiles.p2.name        = data.data.p2name        || 'Person 2';
+      C.profiles.p1.waterTarget = parseFloat(data.data.wt1)||2;
+      C.profiles.p2.waterTarget = parseFloat(data.data.wt2)||2;
+      saveC();
+
+      // Show who-are-you step with loaded names
+      const el=document.getElementById('gs4-profiles');
+      el.innerHTML=[
+        {p:'p1',n:C.profiles.p1.name},
+        {p:'p2',n:C.profiles.p2.name}
+      ].map(function(pr){
+        return '<div onclick="pickWho(''+pr.p+'')" id="who-'+pr.p+'" style="flex:1;border:2px solid var(--bd);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:.2s;background:var(--s1);">'
+          +'<div style="font-size:22px;margin-bottom:6px;">'+(pr.p==='p1'?'👨':'👩‍⚕️')+'</div>'
+          +'<div style="font-size:13px;font-weight:600;">'+pr.n+'</div>'
+          +'</div>';
+      }).join('');
+      pickWho('p1');
+      showGateStep('gs4');
+
+    } else {
+      // No profiles in Sheet yet — first time setup
+      showGateStep('gs3');
+    }
+
+  }catch(e){
+    // Connection failed
+    toast('Connection failed — check URL');
+    setSS('err','Connection failed');
+    showGateStep('gs1');
+  }
 }
-function skipLocal(){ C.useLocal=true; C.apiUrl=''; saveC(); document.getElementById('gs1').classList.remove('on'); document.getElementById('gs2').classList.add('on'); }
-function saveProfile(){
-  C.profiles.p1.name=document.getElementById('g-p1').value.trim()||'You';
-  C.who=document.getElementById('g-who').value;
-  C.profiles.p2.name=document.getElementById('g-p2').value.trim()||'Partner';
-  C.profiles.p1.waterTarget=parseFloat(document.getElementById('g-wt1').value)||2;
-  C.profiles.p2.waterTarget=parseFloat(document.getElementById('g-wt2').value)||2;
+
+function pickWho(p){
+  selectedWho=p;
+  ['p1','p2'].forEach(function(x){
+    const el=document.getElementById('who-'+x);
+    if(!el) return;
+    if(x===p){
+      el.style.borderColor=x==='p1'?'var(--g)':'var(--v)';
+      el.style.background=x==='p1'?'rgba(52,211,153,.08)':'rgba(167,139,250,.08)';
+    } else {
+      el.style.borderColor='var(--bd)';
+      el.style.background='var(--s1)';
+    }
+  });
+}
+
+function confirmWho(){
+  C.who=selectedWho;
   C.setup=true; saveC();
+  document.getElementById('gate').style.display='none';
+  document.getElementById('nav').style.display='flex';
+  init();
+}
+
+function skipLocal(){
+  C.useLocal=true; C.apiUrl=''; saveC();
+  showGateStep('gs3');
+}
+
+async function saveProfile(){
+  C.profiles.p1.name        = document.getElementById('g-p1').value.trim()||'Person 1';
+  C.profiles.p2.name        = document.getElementById('g-p2').value.trim()||'Person 2';
+  C.profiles.p1.waterTarget = parseFloat(document.getElementById('g-wt1').value)||2;
+  C.profiles.p2.waterTarget = parseFloat(document.getElementById('g-wt2').value)||2;
+  C.who                     = document.getElementById('g-who').value;
+  C.setup=true; saveC();
+
+  // Save profiles to Sheet so second person auto-fetches them
+  if(!C.useLocal && C.apiUrl){
+    try{
+      await fetch(C.apiUrl+'?action=saveConfig', {
+        method:'POST',
+        mode:'no-cors',
+        body:JSON.stringify({
+          action:'saveConfig',
+          config:{
+            p1name: C.profiles.p1.name,
+            p2name: C.profiles.p2.name,
+            wt1:    C.profiles.p1.waterTarget,
+            wt2:    C.profiles.p2.waterTarget
+          }
+        })
+      });
+    }catch(e){}
+  }
+
   document.getElementById('gate').style.display='none';
   document.getElementById('nav').style.display='flex';
   init();
@@ -1352,6 +1469,20 @@ if(C.setup){
   document.getElementById('gate').style.display='none';
   document.getElementById('nav').style.display='flex';
   init();
+  // Silently refresh profiles from Sheet on every launch
+  if(!C.useLocal && C.apiUrl){
+    fetch(C.apiUrl+'?action=getConfig')
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if(data.ok && data.data && data.data.p1name){
+          C.profiles.p1.name        = data.data.p1name        || C.profiles.p1.name;
+          C.profiles.p2.name        = data.data.p2name        || C.profiles.p2.name;
+          C.profiles.p1.waterTarget = parseFloat(data.data.wt1)||C.profiles.p1.waterTarget;
+          C.profiles.p2.waterTarget = parseFloat(data.data.wt2)||C.profiles.p2.waterTarget;
+          saveC(); render();
+        }
+      }).catch(function(){});
+  }
 } else {
   if(C.apiUrl) document.getElementById('g-url').value=C.apiUrl;
   setSS('err','Not connected');
