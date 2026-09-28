@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VitalPair</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+:root{
+  --bg:#080b12;--s1:#0e1320;--s2:#141928;--s3:#1a2035;
+  --bd:#1f2d45;--bd2:#2a3a55;
+  --g:#34d399;--v:#a78bfa;--w:#f59e0b;--r:#f87171;--b:#60a5fa;
+  --t:#dde3f0;--dim:#7a8499;--mut:#3d4a62;
+  --font:'Inter',sans-serif;--serif:'Playfair Display',serif;
+  --rad:13px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--t);font-family:var(--font);font-size:14px;min-height:100vh;overflow-x:hidden;}
+
+/* NAV */
+.nav{display:flex;background:var(--s1);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:50;overflow-x:auto;scrollbar-width:none;}
+.nav::-webkit-scrollbar{display:none;}
+.nb{flex:1;min-width:58px;padding:13px 5px;border:none;background:transparent;color:var(--dim);font-size:11px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;font-family:var(--font);transition:.2s;}
+.nb.on{color:var(--t);border-bottom-color:var(--g);}
+.pg{display:none;padding:16px;max-width:560px;margin:0 auto;}
+.pg.on{display:block;}
+
+/* ONBOARDING */
+.gate{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+.gbox{background:var(--s1);border:1px solid var(--bd);border-radius:18px;padding:26px;width:100%;max-width:420px;}
+.glogo{font-family:var(--serif);font-size:26px;font-style:italic;color:var(--g);text-align:center;margin-bottom:5px;}
+.gsub{text-align:center;font-size:11px;color:var(--dim);margin-bottom:22px;}
+.gstep{display:none;}.gstep.on{display:block;}
+.gtitle{font-size:15px;font-weight:600;margin-bottom:14px;}
+.lbl{font-size:11px;color:var(--dim);margin-bottom:5px;margin-top:11px;}
+.inp{background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:10px 12px;color:var(--t);font-size:13px;font-family:var(--font);outline:none;width:100%;}
+.inp:focus{border-color:var(--bd2);}
+.btn{padding:10px 18px;border-radius:9px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:.15s;}
+.btn-g{background:var(--g);color:#000;}.btn-g:hover{opacity:.9;}
+.btn-s{background:var(--s2);border:1px solid var(--bd);color:var(--dim);}
+.btn-r{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);color:var(--r);}
+.btn-row{display:flex;gap:8px;margin-top:14px;}
+.btn-full{width:100%;}
+
+/* SYNC */
+.sync-bar{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:9px 13px;margin-bottom:13px;}
+.sdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;}
+.sdot.ok{background:var(--g);}.sdot.err{background:var(--r);}.sdot.loading{background:var(--w);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.stxt{font-size:11px;color:var(--dim);}
+.sync-btn{background:transparent;border:1px solid var(--bd);border-radius:7px;padding:5px 10px;color:var(--dim);font-size:11px;cursor:pointer;font-family:var(--font);}
+
+/* DATE BAR */
+.datebar{display:flex;align-items:center;gap:7px;margin-bottom:13px;}
+.dnav{background:var(--s2);border:1px solid var(--bd);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--dim);}
+.dnav:hover{color:var(--t);}
+.dinp{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:5px 10px;color:var(--t);font-size:12px;font-family:var(--font);outline:none;flex:1;}
+.tbtn{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:8px;padding:5px 10px;color:var(--g);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:var(--font);}
+
+/* PROFILES */
+.ptabs{display:flex;gap:8px;margin-bottom:13px;}
+.ptab{flex:1;border:2px solid var(--bd);border-radius:12px;padding:11px;cursor:pointer;text-align:center;transition:.2s;background:var(--s1);}
+.ptab.sg{border-color:var(--g);background:rgba(52,211,153,.06);}
+.ptab.sv{border-color:var(--v);background:rgba(167,139,250,.06);}
+.pname{font-size:12px;font-weight:600;margin-bottom:3px;}
+.ppts{font-family:var(--serif);font-size:22px;line-height:1;}
+.psub{font-size:10px;color:var(--dim);margin-top:2px;}
+.gc{color:var(--g);}.vc{color:var(--v);}
+
+/* RINGS */
+.rings{display:flex;gap:8px;margin-bottom:12px;}
+.rcard{flex:1;background:var(--s1);border:1px solid var(--bd);border-radius:var(--rad);padding:13px;display:flex;flex-direction:column;align-items:center;}
+.rw{position:relative;width:68px;height:68px;margin-bottom:7px;}
+.rw svg{transform:rotate(-90deg);}
+.rctr{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.rpct{font-family:var(--serif);font-size:15px;line-height:1;}
+.rtiny{font-size:9px;color:var(--dim);}
+.rname{font-size:11px;font-weight:600;}.rsub{font-size:10px;color:var(--dim);margin-top:1px;}
+
+/* STREAKS */
+.srow{display:flex;gap:8px;margin-bottom:12px;}
+.scard{flex:1;background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:11px;display:flex;align-items:center;gap:8px;}
+.snum{font-family:var(--serif);font-size:20px;}.slbl{font-size:10px;color:var(--dim);}
+
+/* CARD */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rad);padding:15px;margin-bottom:10px;}
+.ctitle{font-size:11px;font-weight:600;color:var(--dim);margin-bottom:12px;}
+.sec{font-size:11px;font-weight:600;color:var(--dim);letter-spacing:.5px;margin:14px 0 9px;}
+
+/* ═══════════════════════════════════════
+   MEAL ENTRY — CORE NEW FEATURE
+═══════════════════════════════════════ */
+.meal-block{border:1px solid var(--bd);border-radius:12px;margin-bottom:10px;overflow:hidden;}
+.meal-header{display:flex;align-items:center;gap:10px;padding:13px 14px;background:var(--s1);cursor:pointer;}
+.meal-header:hover{background:var(--s2);}
+.meal-time-badge{background:var(--s3);border:1px solid var(--bd);border-radius:7px;padding:3px 9px;font-size:11px;color:var(--dim);white-space:nowrap;}
+.meal-hname{flex:1;font-size:13px;font-weight:600;}
+.meal-status{display:flex;gap:5px;align-items:center;}
+.mchk{width:26px;height:26px;border-radius:50%;border:2px solid var(--bd);background:transparent;cursor:pointer;font-size:10px;font-weight:700;color:var(--dim);transition:.15s;display:flex;align-items:center;justify-content:center;font-family:var(--font);}
+.mchk.cg{background:var(--g);border-color:var(--g);color:#000;}
+.mchk.cv{background:var(--v);border-color:var(--v);color:#fff;}
+.meal-expand{font-size:12px;color:var(--dim);padding:0 4px;}
+
+.meal-body{display:none;border-top:1px solid var(--bd);background:var(--s2);}
+.meal-body.open{display:block;}
+
+/* Per-person food entry */
+.person-entry{padding:13px 14px;border-bottom:1px solid var(--bd);}
+.person-entry:last-child{border-bottom:none;}
+.pe-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+.pe-name{font-size:12px;font-weight:600;}
+.pe-done-toggle{display:flex;align-items:center;gap:7px;}
+.pe-done-lbl{font-size:11px;color:var(--dim);}
+.toggle{position:relative;width:38px;height:20px;cursor:pointer;}
+.toggle input{display:none;}
+.tslider{position:absolute;inset:0;border-radius:20px;background:var(--mut);transition:.2s;}
+.tslider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;border-radius:50%;background:white;transition:.2s;}
+.toggle input:checked + .tslider{background:var(--g);}
+.toggle input:checked + .tslider.purple{background:var(--v);}
+.toggle input:checked + .tslider:before{transform:translateX(18px);}
+
+.food-inp-wrap{position:relative;}
+.food-inp{background:var(--s1);border:1px solid var(--bd);border-radius:9px;padding:9px 12px;color:var(--t);font-size:12px;font-family:var(--font);outline:none;width:100%;resize:none;min-height:60px;line-height:1.5;}
+.food-inp:focus{border-color:var(--bd2);}
+.food-inp::placeholder{color:var(--mut);font-style:italic;}
+.food-inp-hint{font-size:10px;color:var(--mut);margin-top:5px;}
+
+/* Quick food tags */
+.quick-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.qtag{background:var(--s3);border:1px solid var(--bd);border-radius:6px;padding:4px 9px;font-size:10px;color:var(--dim);cursor:pointer;transition:.15s;}
+.qtag:hover{color:var(--t);border-color:var(--bd2);}
+.qtag.active{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.4);color:var(--g);}
+
+/* Calorie / protein quick note */
+.meal-note-row{display:flex;gap:8px;margin-top:9px;}
+.mnote{flex:1;background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;display:flex;align-items:center;gap:6px;}
+.mnote-inp{background:transparent;border:none;color:var(--t);font-size:12px;font-family:var(--font);outline:none;width:60px;}
+.mnote-lbl{font-size:10px;color:var(--dim);}
+
+/* Meal slot actions */
+.meal-slot-actions{display:flex;gap:6px;padding:10px 14px;background:var(--s1);border-top:1px solid var(--bd);}
+.ibtn{background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:5px 10px;font-size:11px;color:var(--dim);cursor:pointer;font-family:var(--font);transition:.15s;}
+.ibtn:hover{color:var(--t);}
+.ibtn.del{color:var(--r);border-color:rgba(248,113,113,.25);}
+
+/* ═══ WATER ═══ */
+.water-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rad);padding:15px;margin-bottom:10px;}
+.water-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;}
+.wttl{font-size:13px;font-weight:600;}
+.wnums{display:flex;gap:14px;}
+.wnum{text-align:center;}
+.wval{font-family:var(--serif);font-size:20px;line-height:1;}
+.wlbl{font-size:10px;color:var(--dim);}
+.winput-row{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+.wlabel{font-size:11px;min-width:70px;}
+.winp{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:7px 10px;color:var(--t);font-size:13px;font-family:var(--font);outline:none;width:80px;}
+.wunit{font-size:11px;color:var(--dim);}
+.wquick{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px;}
+.wq{background:var(--s3);border:1px solid var(--bd);border-radius:6px;padding:4px 8px;font-size:10px;cursor:pointer;color:var(--dim);font-family:var(--font);}
+.wq:hover{color:var(--t);}
+
+/* ═══ HABITS ═══ */
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.hcard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:12px;}
+.hico{font-size:19px;margin-bottom:5px;}
+.hname{font-size:12px;font-weight:500;margin-bottom:7px;line-height:1.3;}
+.hbtns{display:flex;gap:5px;}
+.hb{flex:1;height:26px;border-radius:7px;border:1.5px solid var(--bd);background:transparent;cursor:pointer;font-size:10px;font-weight:600;color:var(--dim);transition:.15s;font-family:var(--font);}
+.hb.dg{background:var(--g);border-color:var(--g);color:#000;}
+.hb.dv{background:var(--v);border-color:var(--v);color:#fff;}
+.irow{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+
+/* ═══ NO PORN ═══ */
+.np-profs{display:flex;gap:8px;}
+.np-prof{flex:1;border:1.5px solid var(--bd);border-radius:10px;padding:12px;text-align:center;}
+.np-prof.pg{border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.04);}
+.np-prof.pv{border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.04);}
+.np-days{font-family:var(--serif);font-size:32px;line-height:1;}
+.np-lbl{font-size:10px;color:var(--dim);margin-top:3px;}
+.np-nm{font-size:11px;font-weight:600;margin-bottom:5px;}
+.np-btn{width:100%;margin-top:6px;padding:6px;border-radius:7px;border:1px solid var(--bd);background:transparent;color:var(--dim);font-size:11px;cursor:pointer;font-family:var(--font);}
+.np-btn.danger{color:var(--r);border-color:rgba(248,113,113,.2);margin-top:3px;}
+.ms-wrap{margin-top:10px;}
+.ms-row{display:flex;gap:4px;margin-bottom:3px;}
+.ms{flex:1;height:4px;border-radius:2px;background:var(--mut);}
+.ms.mg{background:var(--g);}.ms.mv{background:var(--v);}
+.ms-lbls{display:flex;justify-content:space-between;}
+.mslbl{font-size:9px;color:var(--mut);}
+
+/* ═══ WEEK STRIP ═══ */
+.wstrip{display:flex;gap:5px;}
+.dcell{flex:1;background:var(--s1);border:1px solid var(--bd);border-radius:9px;padding:7px 3px;text-align:center;cursor:pointer;transition:.15s;}
+.dcell.sel{border-color:var(--g);}
+.dcell.tod{border-color:var(--w);}
+.dn{font-size:9px;color:var(--dim);margin-bottom:3px;}
+.dd{font-size:12px;font-weight:600;margin-bottom:5px;}
+.ddots{display:flex;flex-direction:column;gap:3px;align-items:center;}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--mut);}
+.dot.dg{background:var(--g);}.dot.dv{background:var(--v);}
+
+/* ═══ ACHIEVEMENTS ═══ */
+.agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ach{background:var(--s1);border:1px solid var(--bd);border-radius:11px;padding:10px;text-align:center;}
+.ach.ul{border-color:var(--w);background:rgba(245,158,11,.05);}
+.ach-i{font-size:21px;margin-bottom:5px;}
+.ach-n{font-size:10px;font-weight:600;color:var(--dim);}
+.ach-d{font-size:9px;color:var(--mut);margin-top:2px;}
+.ach.lk .ach-i{filter:grayscale(1);opacity:.2;}
+.ach.lk .ach-n{color:var(--mut);}
+
+/* ═══ ANALYTICS ═══ */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.stat-card{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:13px;}
+.stat-val{font-family:var(--serif);font-size:24px;line-height:1;margin-bottom:3px;}
+.stat-lbl{font-size:11px;color:var(--dim);}
+.crow{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+.clbl{font-size:10px;color:var(--dim);min-width:30px;text-align:right;}
+.cbg{flex:1;height:8px;background:var(--s3);border-radius:4px;overflow:hidden;}
+.cb{height:100%;border-radius:4px;transition:.4s;}
+.cval{font-size:10px;color:var(--dim);min-width:28px;}
+
+/* ═══ MODAL ═══ */
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+.ovl.open{display:flex;}
+.modal{background:var(--s1);border:1px solid var(--bd);border-radius:18px 18px 0 0;padding:22px;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;}
+.modal-t{font-size:15px;font-weight:600;margin-bottom:16px;}
+.mrow{margin-bottom:11px;}
+
+/* ═══ DATA / SETTINGS ═══ */
+.exp-btn{display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:13px;cursor:pointer;transition:.15s;margin-bottom:8px;}
+.exp-btn:hover{border-color:var(--bd2);}
+.srow2{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--bd);}
+.srow2:last-child{border-bottom:none;}
+.slbl{font-size:13px;font-weight:500;}
+.ssub{font-size:11px;color:var(--dim);margin-top:2px;}
+
+/* ═══ FOOD HISTORY SUGGESTIONS ═══ */
+.suggestions{position:absolute;top:100%;left:0;right:0;background:var(--s1);border:1px solid var(--bd2);border-radius:9px;z-index:100;max-height:160px;overflow-y:auto;margin-top:4px;}
+.sug-item{padding:9px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--bd);}
+.sug-item:last-child{border-bottom:none;}
+.sug-item:hover{background:var(--s2);color:var(--t);}
+
+/* ═══ TOAST ═══ */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--s2);border:1px solid var(--bd);border-radius:20px;padding:9px 18px;font-size:12px;font-weight:500;z-index:300;white-space:nowrap;transition:transform .3s;max-width:90vw;text-align:center;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+.empty{text-align:center;padding:26px 16px;color:var(--dim);}
+.empty-i{font-size:26px;margin-bottom:6px;}
+select.inp{appearance:none;}
+.pad{height:40px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ GATE ═══ -->
+<div class="gate" id="gate">
+  <div class="gbox">
+    <div class="glogo">VitalPair</div>
+    <div class="gsub">Health tracker — synced via Google Sheets</div>
+    <div class="gstep on" id="gs1">
+      <div class="gtitle">Connect Google Sheet</div>
+      <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:10px;padding:12px;font-size:11px;line-height:1.7;margin-bottom:14px;">
+        1. Open Google Sheets → Extensions → Apps Script<br>
+        2. Paste <b>VitalPair_AppScript.js</b> → Save<br>
+        3. Deploy → Web App → Execute as Me → Anyone<br>
+        4. Copy the Web App URL below
+      </div>
+      <div class="lbl">Apps Script Web App URL</div>
+      <input class="inp" id="g-url" placeholder="https://script.google.com/macros/s/.../exec">
+      <div class="btn-row">
+        <button class="btn btn-g btn-full" onclick="testUrl()">Connect</button>
+      </div>
+      <div style="text-align:center;margin-top:11px;">
+        <span style="font-size:11px;color:var(--dim);cursor:pointer;text-decoration:underline;" onclick="skipLocal()">Use offline / local only</span>
+      </div>
+    </div>
+    <div class="gstep" id="gs2">
+      <div class="gtitle">Your profiles</div>
+      <div class="lbl">Your name</div>
+      <input class="inp" id="g-p1" placeholder="e.g. Ravi">
+      <div class="lbl">You are</div>
+      <select class="inp" id="g-who"><option value="p1">Person 1</option><option value="p2">Person 2</option></select>
+      <div class="lbl">Partner's name</div>
+      <input class="inp" id="g-p2" placeholder="e.g. Priya">
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <div style="flex:1;"><div class="lbl">Your water target (L)</div><input class="inp" type="number" id="g-wt1" value="2" step="0.25" min="0.5"></div>
+        <div style="flex:1;"><div class="lbl">Partner water target (L)</div><input class="inp" type="number" id="g-wt2" value="2" step="0.25" min="0.5"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-g btn-full" onclick="saveProfile()">Start Tracking</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NAV ═══ -->
+<div class="nav" id="nav" style="display:none;">
+  <button class="nb on"  onclick="goto('today')">Today</button>
+  <button class="nb"     onclick="goto('meals')">Meals</button>
+  <button class="nb"     onclick="goto('habits')">Habits</button>
+  <button class="nb"     onclick="goto('analytics')">Analytics</button>
+  <button class="nb"     onclick="goto('data')">Data</button>
+  <button class="nb"     onclick="goto('settings')">Setup</button>
+</div>
+
+<!-- ═══ TODAY ═══ -->
+<div class="pg on" id="pg-today">
+  <div class="sync-bar">
+    <span><span class="sdot loading" id="sdot"></span><span class="stxt" id="stxt">Connecting…</span></span>
+    <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
+  </div>
+  <div class="datebar">
+    <div class="dnav" onclick="shiftDate(-1)">‹</div>
+    <input type="date" class="dinp" id="dateInp" onchange="onDateChange()">
+    <div class="dnav" onclick="shiftDate(1)">›</div>
+    <button class="tbtn" onclick="goToday()">Today</button>
+  </div>
+  <div class="ptabs">
+    <div class="ptab sg" id="ptab-p1" onclick="selProf('p1')">
+      <div class="pname" id="pn-p1">You</div>
+      <div class="ppts gc" id="pp-p1">0</div>
+      <div class="psub">pts today</div>
+    </div>
+    <div class="ptab" id="ptab-p2" onclick="selProf('p2')">
+      <div class="pname" id="pn-p2">Partner</div>
+      <div class="ppts vc" id="pp-p2">0</div>
+      <div class="psub">pts today</div>
+    </div>
+  </div>
+  <div class="rings">
+    <div class="rcard">
+      <div class="rw"><svg width="68" height="68" viewBox="0 0 68 68">
+        <circle cx="34" cy="34" r="26" fill="none" stroke="#1a2035" stroke-width="6"/>
+        <circle cx="34" cy="34" r="26" fill="none" stroke="#34d399" stroke-width="6" stroke-dasharray="163" stroke-dashoffset="163" id="rc-p1" stroke-linecap="round"/>
+      </svg><div class="rctr"><div class="rpct gc" id="rp-p1">0%</div><div class="rtiny">done</div></div></div>
+      <div class="rname" id="rn-p1">You</div><div class="rsub" id="rs-p1">0/0</div>
+    </div>
+    <div class="rcard">
+      <div class="rw"><svg width="68" height="68" viewBox="0 0 68 68">
+        <circle cx="34" cy="34" r="26" fill="none" stroke="#1a2035" stroke-width="6"/>
+        <circle cx="34" cy="34" r="26" fill="none" stroke="#a78bfa" stroke-width="6" stroke-dasharray="163" stroke-dashoffset="163" id="rc-p2" stroke-linecap="round"/>
+      </svg><div class="rctr"><div class="rpct vc" id="rp-p2">0%</div><div class="rtiny">done</div></div></div>
+      <div class="rname" id="rn-p2">Partner</div><div class="rsub" id="rs-p2">0/0</div>
+    </div>
+  </div>
+  <div class="srow">
+    <div class="scard"><div>🔥</div><div><div class="snum gc" id="str-p1">0</div><div class="slbl">day streak</div></div></div>
+    <div class="scard"><div>⚡</div><div><div class="snum vc" id="str-p2">0</div><div class="slbl">day streak</div></div></div>
+  </div>
+  <div class="sec">This Week</div>
+  <div class="wstrip" id="wstrip"></div>
+  <div class="sec">Meals <span style="font-size:10px;color:var(--dim);font-weight:400;">— tap to expand, enter what you actually ate</span></div>
+  <div id="today-meals"></div>
+  <div class="sec">Water Intake</div>
+  <div class="water-card" id="today-water"></div>
+  <div class="sec">Habits</div>
+  <div class="hgrid" id="today-habits"></div>
+  <div class="sec">Brain Reset Streak</div>
+  <div class="card">
+    <div class="np-profs">
+      <div class="np-prof pg">
+        <div class="np-nm gc" id="npn-p1">You</div>
+        <div class="np-days gc" id="npd-p1">0</div>
+        <div class="np-lbl">days clean</div>
+        <button class="np-btn" onclick="chgNP('p1',1)">+ Day</button>
+        <button class="np-btn danger" onclick="rstNP('p1')">Reset</button>
+      </div>
+      <div class="np-prof pv">
+        <div class="np-nm vc" id="npn-p2">Partner</div>
+        <div class="np-days vc" id="npd-p2">0</div>
+        <div class="np-lbl">days clean</div>
+        <button class="np-btn" onclick="chgNP('p2',1)">+ Day</button>
+        <button class="np-btn danger" onclick="rstNP('p2')">Reset</button>
+      </div>
+    </div>
+    <div class="ms-wrap">
+      <div class="ms-row" id="ms-p1"></div>
+      <div class="ms-lbls"><span class="mslbl">7d</span><span class="mslbl">30d</span><span class="mslbl">60d</span><span class="mslbl">90d</span></div>
+      <div class="ms-row" id="ms-p2" style="margin-top:7px;"></div>
+      <div class="ms-lbls"><span class="mslbl">7d</span><span class="mslbl">30d</span><span class="mslbl">60d</span><span class="mslbl">90d</span></div>
+    </div>
+  </div>
+  <div class="sec">Achievements</div>
+  <div class="agrid" id="achGrid"></div>
+  <div class="pad"></div>
+</div>
+
+<!-- ═══ MEALS SETUP ═══ -->
+<div class="pg" id="pg-meals">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <div style="font-family:var(--serif);font-size:20px;font-style:italic;">Meal Slots</div>
+    <button class="btn btn-g" style="font-size:12px;padding:8px 14px;" onclick="openMealModal()">+ Add Slot</button>
+  </div>
+  <div style="font-size:12px;color:var(--dim);margin-bottom:14px;">These are your meal time slots. Each day you enter what you actually ate for each slot — nothing is preloaded.</div>
+  <div id="meals-list"></div>
+  <div class="pad"></div>
+</div>
+
+<!-- ═══ HABITS ═══ -->
+<div class="pg" id="pg-habits">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <div style="font-family:var(--serif);font-size:20px;font-style:italic;">Habits</div>
+    <button class="btn btn-g" style="font-size:12px;padding:8px 14px;" onclick="openHabitModal()">+ Add</button>
+  </div>
+  <div class="hgrid" id="habits-list"></div>
+  <div class="pad"></div>
+</div>
+
+<!-- ═══ ANALYTICS ═══ -->
+<div class="pg" id="pg-analytics">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <div style="font-family:var(--serif);font-size:20px;font-style:italic;">Analytics</div>
+    <select class="inp" style="width:auto;padding:6px 10px;font-size:12px;" id="analPeriod" onchange="loadAnalytics()">
+      <option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option>
+    </select>
+  </div>
+  <div id="anal-content"><div class="empty"><div class="empty-i">📊</div><div>Loading…</div></div></div>
+  <div class="pad"></div>
+</div>
+
+<!-- ═══ DATA ═══ -->
+<div class="pg" id="pg-data">
+  <div style="font-family:var(--serif);font-size:20px;font-style:italic;margin-bottom:14px;">Data</div>
+  <div class="card">
+    <div class="ctitle">Export</div>
+    <div class="exp-btn" onclick="exportCSV()"><div style="font-size:20px;">📊</div><div style="flex:1;"><div style="font-size:13px;font-weight:500;">Export CSV</div><div style="font-size:11px;color:var(--dim);margin-top:2px;">Full log with actual food entries — open in Excel</div></div><div>↓</div></div>
+    <div class="exp-btn" onclick="exportJSON()"><div style="font-size:20px;">💾</div><div style="flex:1;"><div style="font-size:13px;font-weight:500;">Export JSON backup</div><div style="font-size:11px;color:var(--dim);margin-top:2px;">Full settings + local data backup</div></div><div>↓</div></div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Import</div>
+    <label class="exp-btn" style="cursor:pointer;"><div style="font-size:20px;">📂</div><div style="flex:1;"><div style="font-size:13px;font-weight:500;">Import JSON backup</div><div style="font-size:11px;color:var(--dim);margin-top:2px;">Restore from a previous export</div></div><div>↑</div><input type="file" accept=".json" style="display:none;" onchange="importJSON(this)"></label>
+  </div>
+  <div class="card">
+    <div class="ctitle">History — last 30 days</div>
+    <div id="history-log"><div class="empty"><div class="empty-i">📋</div><div>Tap below to load</div></div></div>
+    <button class="btn btn-s btn-full" style="margin-top:11px;" onclick="loadHistory()">Fetch from Sheet</button>
+  </div>
+  <div class="pad"></div>
+</div>
+
+<!-- ═══ SETTINGS ═══ -->
+<div class="pg" id="pg-settings">
+  <div style="font-family:var(--serif);font-size:20px;font-style:italic;margin-bottom:14px;">Setup</div>
+  <div class="card">
+    <div class="ctitle">Profiles</div>
+    <div class="lbl">Your name</div><input class="inp" id="s-p1" oninput="saveCfgLive()">
+    <div class="lbl" style="margin-top:9px;">Partner's name</div><input class="inp" id="s-p2" oninput="saveCfgLive()">
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <div style="flex:1;"><div class="lbl">Your water (L)</div><input class="inp" type="number" id="s-wt1" step="0.25" oninput="saveCfgLive()"></div>
+      <div style="flex:1;"><div class="lbl">Partner water (L)</div><input class="inp" type="number" id="s-wt2" step="0.25" oninput="saveCfgLive()"></div>
+    </div>
+    <div class="lbl" style="margin-top:9px;">I am</div>
+    <select class="inp" id="s-who" onchange="saveCfgLive()"><option value="p1">Person 1</option><option value="p2">Person 2</option></select>
+  </div>
+  <div class="card">
+    <div class="ctitle">Sheet Connection</div>
+    <input class="inp" id="s-url" placeholder="Apps Script Web App URL" oninput="saveCfgLive()">
+    <button class="btn btn-g btn-full" style="margin-top:9px;" onclick="reconnect()">Reconnect</button>
+  </div>
+  <div class="card">
+    <div class="ctitle">Meal Slots</div>
+    <div id="s-meals"></div>
+    <button class="btn btn-g btn-full" style="margin-top:10px;" onclick="openMealModal()">+ Add Meal Slot</button>
+  </div>
+  <div class="card">
+    <div class="ctitle">Habits</div>
+    <div id="s-habits"></div>
+    <button class="btn btn-g btn-full" style="margin-top:10px;" onclick="openHabitModal()">+ Add Habit</button>
+  </div>
+  <div class="card" style="border-color:rgba(248,113,113,.2);">
+    <div class="ctitle">Danger Zone</div>
+    <button class="btn btn-r btn-full" onclick="resetApp()">Reset & reconnect</button>
+  </div>
+  <div class="pad"></div>
+</div>
+
+<!-- ═══ MODAL: MEAL SLOT ═══ -->
+<div class="ovl" id="modal-meal" onclick="closeMod('modal-meal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-t" id="meal-mod-t">Add Meal Slot</div>
+    <div class="mrow"><div class="lbl">Slot name (e.g. Breakfast, Lunch)</div><input class="inp" id="mm-name" placeholder="e.g. Breakfast"></div>
+    <div class="mrow"><div class="lbl">Time (e.g. 9:30 AM)</div><input class="inp" id="mm-time" placeholder="e.g. 9:30 AM"></div>
+    <div class="mrow">
+      <div class="lbl">Quick food suggestions for this slot (comma separated)</div>
+      <input class="inp" id="mm-tags" placeholder="e.g. Idli, Dosa, Pongal, Upma, Egg">
+      <div style="font-size:10px;color:var(--mut);margin-top:5px;">These appear as tap-to-add suggestions when logging. Each person types their actual food each day.</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-g" onclick="saveMealSlot()">Save</button>
+      <button class="btn btn-s" onclick="closeMod('modal-meal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: HABIT ═══ -->
+<div class="ovl" id="modal-habit" onclick="closeMod('modal-habit')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-t" id="habit-mod-t">Add Habit</div>
+    <div class="mrow"><div class="lbl">Habit name</div><input class="inp" id="hm-name" placeholder="e.g. Morning Walk"></div>
+    <div class="mrow"><div class="lbl">Icon (emoji)</div><input class="inp" id="hm-icon" placeholder="🚶" maxlength="4"></div>
+    <div class="btn-row">
+      <button class="btn btn-g" onclick="saveHabit()">Save</button>
+      <button class="btn btn-s" onclick="closeMod('modal-habit')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+const LS='vp6';
+function dflt(){
+  return {
+    apiUrl:'', who:'p1', useLocal:false, setup:false,
+    profiles:{
+      p1:{name:'You', waterTarget:2},
+      p2:{name:'Partner', waterTarget:2}
+    },
+    meals:[
+      {id:'m1', name:'Breakfast', time:'9:30 AM', tags:'Idli,Dosa,Pongal,Upma,Oats'},
+      {id:'m5', name:'Brunch',    time:'11:30 AM', tags:'Sandwich,Egg toast,Fruits,Sprouts,Nuts,Smoothie,Poha'},
+      {id:'m2', name:'Lunch',     time:'2:00 PM',  tags:'Rice,Chapathi,Biryani,Roti'},
+      {id:'m3', name:'Snack',     time:'5:00 PM',  tags:'Chana Sundal,Fruits,Nuts,Tea,Coffee'},
+      {id:'m4', name:'Dinner',    time:'8:00 PM',  tags:'Chapathi,Rice,Dal,Soup'},
+    ],
+    habits:[
+      {id:'h1',name:'Gym Done',icon:'🏋️'},
+      {id:'h2',name:'Whole Eggs (yolk)',icon:'🥚'},
+      {id:'h3',name:'Dark Chocolate',icon:'🍫'},
+      {id:'h4',name:'Pineapple post gym',icon:'🍍'},
+      {id:'h5',name:'Sunlight 15 min',icon:'🌞'},
+      {id:'h6',name:'Sleep by 11 PM',icon:'😴'},
+      {id:'h7',name:'No Porn today',icon:'🚫'},
+      {id:'h8',name:'Skin & Hair care',icon:'💆'},
+    ],
+    // localLog[date][person][mealId] = {done, foods, cal, protein}
+    // localLog[date][person].habits[habitId] = bool
+    // localLog[date][person].water = float
+    localLog:{},
+    noPornDays:{p1:0, p2:0},
+    streaks:{p1:0, p2:0},
+    // food history for suggestions
+    foodHistory:[], // array of food strings used before
+  };
+}
+
+let C=dflt();
+function loadC(){ try{ const r=localStorage.getItem(LS); if(r) C={...dflt(),...JSON.parse(r)}; }catch(e){} }
+function saveC(){ try{ localStorage.setItem(LS,JSON.stringify(C)); }catch(e){} }
+function today(){ return new Date().toISOString().slice(0,10); }
+
+let viewDate=today();
+let expandedMeals={}; // mealId -> bool
+
+// ════════════════════════════════════════════════
+// LOG HELPERS
+// ════════════════════════════════════════════════
+function getPersonLog(date, person){
+  if(!C.localLog[date]) C.localLog[date]={};
+  if(!C.localLog[date][person]) C.localLog[date][person]={meals:{},habits:{},water:0};
+  return C.localLog[date][person];
+}
+function getMealLog(date,person,mealId){
+  const pl=getPersonLog(date,person);
+  if(!pl.meals[mealId]) pl.meals[mealId]={done:false,foods:'',cal:'',protein:''};
+  return pl.meals[mealId];
+}
+function getHabitDone(date,person,habitId){
+  const pl=getPersonLog(date,person);
+  return pl.habits[habitId]||false;
+}
+function getWater(date,person){
+  return getPersonLog(date,person).water||0;
+}
+
+function setMealField(date,person,mealId,field,value){
+  getMealLog(date,person,mealId)[field]=value;
+  // track food history
+  if(field==='foods' && value.trim()){
+    const items=value.split(',').map(s=>s.trim()).filter(Boolean);
+    items.forEach(item=>{ if(!C.foodHistory.includes(item)) C.foodHistory.unshift(item); });
+    if(C.foodHistory.length>100) C.foodHistory=C.foodHistory.slice(0,100);
+  }
+  saveC();
+}
+function setHabit(date,person,habitId,val){
+  getPersonLog(date,person).habits[habitId]=val; saveC();
+}
+function setWater(date,person,val){
+  getPersonLog(date,person).water=Math.max(0,parseFloat(val)||0); saveC();
+}
+
+// ════════════════════════════════════════════════
+// SCORE
+// ════════════════════════════════════════════════
+function calcScore(date,p){
+  const pl=getPersonLog(date,p);
+  const mDone=C.meals.filter(m=>pl.meals[m.id]&&pl.meals[m.id].done).length;
+  const hDone=C.habits.filter(h=>pl.habits[h.id]).length;
+  const wt=C.profiles[p].waterTarget||2;
+  const w=pl.water||0;
+  const wpts=w>=wt?1:w>=wt*0.5?0.5:0;
+  return mDone+hDone+wpts;
+}
+function calcTotal(){ return C.meals.length+C.habits.length+1; }
+
+// ════════════════════════════════════════════════
+// SYNC (Google Sheets API or local)
+// ════════════════════════════════════════════════
+let syncTimers={};
+function autoSync(person){ clearTimeout(syncTimers[person]); syncTimers[person]=setTimeout(()=>pushToSheet(viewDate,person),2000); }
+
+async function pushToSheet(date,person){
+  if(C.useLocal||!C.apiUrl) return;
+  const pl=getPersonLog(date,person);
+  const entries=[];
+  C.meals.forEach(m=>{
+    const ml=pl.meals[m.id]||{};
+    entries.push({type:'meal',itemId:m.id,itemName:m.name,done:ml.done||false,foods:ml.foods||'',cal:ml.cal||'',protein:ml.protein||''});
+  });
+  C.habits.forEach(h=>{ entries.push({type:'habit',itemId:h.id,itemName:h.name,done:pl.habits[h.id]||false}); });
+  entries.push({type:'water',itemId:'water',itemName:'Water',value:pl.water||0});
+  entries.push({type:'noporn',itemId:'noporn_'+person,itemName:'NoPornDays',value:C.noPornDays[person]||0});
+  try{
+    const res=await fetch(C.apiUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'saveLog',date,person,entries})});
+    const data=await res.json();
+    if(data.ok) setSS('ok','Saved '+new Date().toLocaleTimeString());
+    else setSS('err','Sheet error');
+  }catch(e){ setSS('err','Offline — saved locally'); }
+}
+
+async function pullFromSheet(date){
+  if(C.useLocal||!C.apiUrl){ setSS('ok','Local mode'); return; }
+  setSS('loading','Fetching…');
+  try{
+    const res=await fetch(`${C.apiUrl}?action=getLog&date=${date}`);
+    const data=await res.json();
+    if(!data.ok) throw new Error(data.error);
+    // Merge sheet data into local
+    const rows=data.data||[];
+    ['p1','p2'].forEach(p=>{
+      const prows=rows.filter(r=>r.person===p);
+      if(!prows.length) return;
+      prows.forEach(r=>{
+        if(r.type==='meal'){
+          const ml=getMealLog(date,p,r.itemId);
+          ml.done=r.done==='true'||r.done===true;
+          if(r.foods) ml.foods=r.foods;
+          if(r.cal)   ml.cal=r.cal;
+          if(r.protein) ml.protein=r.protein;
+        }
+        if(r.type==='habit') setHabit(date,p,r.itemId,r.done==='true'||r.done===true);
+        if(r.type==='water') setWater(date,p,parseFloat(r.value)||0);
+        if(r.type==='noporn'){ const pid=r.itemId.replace('noporn_',''); C.noPornDays[pid]=parseInt(r.value)||0; }
+      });
+    });
+    saveC(); setSS('ok','Synced '+new Date().toLocaleTimeString()); render();
+  }catch(e){ setSS('err','Offline'); }
+}
+
+async function syncAll(){ await pullFromSheet(viewDate); }
+
+function setSS(state,msg){
+  const d=document.getElementById('sdot'); const t=document.getElementById('stxt');
+  if(d) d.className='sdot '+state;
+  if(t) t.textContent=msg;
+}
+
+// ════════════════════════════════════════════════
+// DATE NAV
+// ════════════════════════════════════════════════
+function shiftDate(d){ const dt=new Date(viewDate+'T12:00:00'); dt.setDate(dt.getDate()+d); viewDate=dt.toISOString().slice(0,10); applyDate(); }
+function goToday(){ viewDate=today(); applyDate(); }
+function onDateChange(){ viewDate=document.getElementById('dateInp').value; applyDate(); }
+async function applyDate(){ document.getElementById('dateInp').value=viewDate; expandedMeals={}; render(); await pullFromSheet(viewDate); }
+
+// ════════════════════════════════════════════════
+// TOGGLES
+// ════════════════════════════════════════════════
+function togMealDone(mealId,person){
+  const ml=getMealLog(viewDate,person,mealId);
+  ml.done=!ml.done; saveC(); render(); autoSync(person);
+  toast(ml.done?'✅ Meal logged!':'↩️ Meal unmarked');
+}
+function togHabit(habitId,person){
+  const cur=getHabitDone(viewDate,person,habitId);
+  setHabit(viewDate,person,habitId,!cur); render(); autoSync(person);
+  toast((!cur)?'✅ Done!':'↩️ Unmarked');
+}
+function updWater(person,val){ setWater(viewDate,person,val); render(); autoSync(person); }
+function chgNP(p,d){ C.noPornDays[p]=Math.max(0,(C.noPornDays[p]||0)+d); saveC(); render(); const n=C.noPornDays[p]; if(n===7)toast('🎉 7 days!'); else if(n===30)toast('🏆 30 days!'); else if(n===60)toast('🔥 60 days!'); else if(n===90)toast('👑 90 DAYS!'); else toast(`Day ${n} 💪`); }
+function rstNP(p){ if(!confirm('Reset streak?')) return; C.noPornDays[p]=0; saveC(); render(); toast('Reset. Start again 💪'); }
+
+function toggleMealExpand(id){ expandedMeals[id]=!expandedMeals[id]; renderTodayMeals(); }
+
+// ════════════════════════════════════════════════
+// FOOD INPUT EVENTS
+// ════════════════════════════════════════════════
+function onFoodInput(mealId,person,val){ setMealField(viewDate,person,mealId,'foods',val); autoSync(person); }
+function onCalInput(mealId,person,val){ setMealField(viewDate,person,mealId,'cal',val); autoSync(person); }
+function onProteinInput(mealId,person,val){ setMealField(viewDate,person,mealId,'protein',val); autoSync(person); }
+
+function addFoodTag(mealId,person,tag){
+  const ml=getMealLog(viewDate,person,mealId);
+  const cur=(ml.foods||'').trim();
+  const newVal=cur?(cur.endsWith(',')?cur+' '+tag:cur+', '+tag):tag;
+  ml.foods=newVal; saveC();
+  // Update textarea
+  const ta=document.getElementById(`food-${mealId}-${person}`);
+  if(ta){ ta.value=newVal; }
+  autoSync(person);
+  renderMealTagHighlights(mealId,person);
+}
+
+function renderMealTagHighlights(mealId,person){
+  const ml=getMealLog(viewDate,person,mealId);
+  const foods=(ml.foods||'').toLowerCase();
+  const meal=C.meals.find(m=>m.id===mealId);
+  if(!meal) return;
+  const tags=(meal.tags||'').split(',').map(s=>s.trim()).filter(Boolean);
+  tags.forEach(tag=>{
+    const el=document.getElementById(`qtag-${mealId}-${person}-${tag.replace(/\s+/g,'_')}`);
+    if(el) el.className='qtag'+(foods.includes(tag.toLowerCase())?' active':'');
+  });
+}
+
+// ════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════
+function render(){
+  renderProfiles();
+  renderRings();
+  renderWeek();
+  renderTodayMeals();
+  renderTodayWater();
+  renderTodayHabits();
+  renderNoPorn();
+  renderAchievements();
+  renderMealsPage();
+  renderHabitsPage();
+  renderSettingsPage();
+}
+
+function renderProfiles(){
+  ['p1','p2'].forEach(p=>{
+    const n=C.profiles[p].name||'You';
+    document.getElementById(`pn-${p}`).textContent=(p==='p1'?'👨 ':'👩‍⚕️ ')+n;
+    document.getElementById(`pp-${p}`).textContent=Math.floor(calcScore(viewDate,p));
+    document.getElementById(`rn-${p}`).textContent=n;
+    document.getElementById(`npn-${p}`).textContent=n;
+    document.getElementById(`str-${p}`).textContent=C.streaks[p]||0;
+  });
+  const f=(id,val)=>{ const e=document.getElementById(id); if(e&&document.activeElement!==e) e.value=val; };
+  f('s-p1',C.profiles.p1.name); f('s-p2',C.profiles.p2.name);
+  f('s-wt1',C.profiles.p1.waterTarget); f('s-wt2',C.profiles.p2.waterTarget);
+  f('s-who',C.who||'p1'); f('s-url',C.apiUrl||'');
+}
+
+function renderRings(){
+  ['p1','p2'].forEach(p=>{
+    const pl=getPersonLog(viewDate,p);
+    const mDone=C.meals.filter(m=>pl.meals[m.id]&&pl.meals[m.id].done).length;
+    const hDone=C.habits.filter(h=>pl.habits[h.id]).length;
+    const total=C.meals.length+C.habits.length;
+    const pct=total?Math.round((mDone+hDone)/total*100):0;
+    document.getElementById(`rc-${p}`).style.strokeDashoffset=163-(pct/100)*163;
+    document.getElementById(`rp-${p}`).textContent=pct+'%';
+    document.getElementById(`rs-${p}`).textContent=`${mDone+hDone}/${total}`;
+  });
+}
+
+function renderWeek(){
+  const strip=document.getElementById('wstrip'); strip.innerHTML='';
+  const days=['S','M','T','W','T','F','S'];
+  const now=new Date();
+  for(let i=6;i>=0;i--){
+    const d=new Date(now); d.setDate(now.getDate()-i);
+    const ds=d.toISOString().slice(0,10);
+    const isT=(ds===today()), isSel=(ds===viewDate);
+    const t=calcTotal(); const s1=calcScore(ds,'p1'), s2=calcScore(ds,'p2');
+    const cell=document.createElement('div');
+    cell.className='dcell'+(isSel?' sel':'')+(isT&&!isSel?' tod':'');
+    cell.innerHTML=`<div class="dn">${days[d.getDay()]}</div><div class="dd">${d.getDate()}</div><div class="ddots"><div class="dot ${s1/t>=0.5?'dg':''}"></div><div class="dot ${s2/t>=0.5?'dv':''}"></div></div>`;
+    cell.onclick=()=>{ viewDate=ds; applyDate(); };
+    strip.appendChild(cell);
+  }
+}
+
+function renderTodayMeals(){
+  const el=document.getElementById('today-meals');
+  if(!C.meals.length){ el.innerHTML='<div class="empty"><div class="empty-i">🍽️</div><div>No meal slots. Add in Meals tab.</div></div>'; return; }
+
+  el.innerHTML=C.meals.map(m=>{
+    const p1ml=getMealLog(viewDate,'p1',m.id);
+    const p2ml=getMealLog(viewDate,'p2',m.id);
+    const isOpen=expandedMeals[m.id];
+    const tags=(m.tags||'').split(',').map(s=>s.trim()).filter(Boolean);
+    const p1name=C.profiles.p1.name||'You';
+    const p2name=C.profiles.p2.name||'Partner';
+
+    const personBlock=(person,ml,name,color)=>{
+      const isP1=person==='p1';
+      const sliderClass=isP1?'':'purple';
+      return `<div class="person-entry">
+        <div class="pe-top">
+          <div class="pe-name" style="color:var(--${color})">${isP1?'👨':'👩‍⚕️'} ${name}</div>
+          <div class="pe-done-toggle">
+            <span class="pe-done-lbl">${ml.done?'Eaten ✓':'Mark eaten'}</span>
+            <label class="toggle">
+              <input type="checkbox" ${ml.done?'checked':''} onchange="togMealDone('${m.id}','${person}')">
+              <span class="tslider ${sliderClass}"></span>
+            </label>
+          </div>
+        </div>
+        <div class="food-inp-wrap">
+          <textarea id="food-${m.id}-${person}" class="food-inp"
+            placeholder="What did ${name} eat? e.g. Idli 3 nos, Sambar, Coconut chutney…"
+            oninput="onFoodInput('${m.id}','${person}',this.value)"
+          >${ml.foods||''}</textarea>
+        </div>
+        <div class="quick-tags">
+          ${tags.map(tag=>{
+            const active=(ml.foods||'').toLowerCase().includes(tag.toLowerCase());
+            const tagId=`qtag-${m.id}-${person}-${tag.replace(/\s+/g,'_')}`;
+            return `<span id="${tagId}" class="qtag${active?' active':''}" onclick="addFoodTag('${m.id}','${person}','${tag}')">${tag}</span>`;
+          }).join('')}
+        </div>
+        <div class="meal-note-row">
+          <div class="mnote">
+            <input id="cal-${m.id}-${person}" class="mnote-inp" type="number" placeholder="—"
+              value="${ml.cal||''}" oninput="onCalInput('${m.id}','${person}',this.value)">
+            <span class="mnote-lbl">kcal</span>
+          </div>
+          <div class="mnote">
+            <input id="prot-${m.id}-${person}" class="mnote-inp" type="number" placeholder="—"
+              value="${ml.protein||''}" oninput="onProteinInput('${m.id}','${person}',this.value)">
+            <span class="mnote-lbl">g protein</span>
+          </div>
+        </div>
+      </div>`;
+    };
+
+    return `<div class="meal-block">
+      <div class="meal-header" onclick="toggleMealExpand('${m.id}')">
+        <span class="meal-time-badge">${m.time}</span>
+        <span class="meal-hname">${m.name}</span>
+        <div class="meal-status">
+          <div class="mchk ${p1ml.done?'cg':''}">${p1name[0]}</div>
+          <div class="mchk ${p2ml.done?'cv':''}">${p2name[0]}</div>
+          <span class="meal-expand">${isOpen?'▲':'▼'}</span>
+        </div>
+      </div>
+      <div class="meal-body ${isOpen?'open':''}">
+        ${personBlock('p1',p1ml,p1name,'g')}
+        ${personBlock('p2',p2ml,p2name,'v')}
+        <div class="meal-slot-actions">
+          <button class="ibtn" onclick="openMealModal('${m.id}')">✏️ Edit slot</button>
+          <button class="ibtn del" onclick="delMealSlot('${m.id}')">🗑 Remove slot</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderTodayWater(){
+  const el=document.getElementById('today-water');
+  const w1=getWater(viewDate,'p1'), w2=getWater(viewDate,'p2');
+  const wt1=C.profiles.p1.waterTarget||2, wt2=C.profiles.p2.waterTarget||2;
+  const p1n=C.profiles.p1.name||'You', p2n=C.profiles.p2.name||'Partner';
+  const presets=[0.25,0.5,0.75,1,1.5,2,2.5,3];
+  el.innerHTML=`
+    <div class="water-top">
+      <div class="wttl">💧 Water Intake</div>
+      <div class="wnums">
+        <div class="wnum"><div class="wval gc">${w1}L</div><div class="wlbl">/${wt1}L</div></div>
+        <div style="width:14px;"></div>
+        <div class="wnum"><div class="wval vc">${w2}L</div><div class="wlbl">/${wt2}L</div></div>
+      </div>
+    </div>
+    <div class="winput-row">
+      <div class="wlabel gc">👨 ${p1n}</div>
+      <input type="number" class="winp" value="${w1}" min="0" max="6" step="0.25"
+        onchange="updWater('p1',this.value)" oninput="updWater('p1',this.value)">
+      <div class="wunit">litres</div>
+    </div>
+    <div class="wquick">${presets.map(v=>`<button class="wq" onclick="updWater('p1',${v})">${v}L</button>`).join('')}</div>
+    <div class="winput-row" style="margin-top:12px;">
+      <div class="wlabel vc">👩‍⚕️ ${p2n}</div>
+      <input type="number" class="winp" value="${w2}" min="0" max="6" step="0.25"
+        onchange="updWater('p2',this.value)" oninput="updWater('p2',this.value)">
+      <div class="wunit">litres</div>
+    </div>
+    <div class="wquick">${presets.map(v=>`<button class="wq" onclick="updWater('p2',${v})">${v}L</button>`).join('')}</div>`;
+}
+
+function renderTodayHabits(){
+  const el=document.getElementById('today-habits');
+  if(!C.habits.length){ el.innerHTML='<div class="empty" style="grid-column:span 2"><div class="empty-i">⭐</div><div>No habits yet.</div></div>'; return; }
+  el.innerHTML=C.habits.map(h=>{
+    const d1=getHabitDone(viewDate,'p1',h.id), d2=getHabitDone(viewDate,'p2',h.id);
+    return `<div class="hcard">
+      <div class="hico">${h.icon}</div>
+      <div class="hname">${h.name}</div>
+      <div class="hbtns">
+        <button class="hb ${d1?'dg':''}" onclick="togHabit('${h.id}','p1')">${(C.profiles.p1.name||'You').slice(0,5)}</button>
+        <button class="hb ${d2?'dv':''}" onclick="togHabit('${h.id}','p2')">${(C.profiles.p2.name||'Partner').slice(0,5)}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderNoPorn(){
+  ['p1','p2'].forEach(p=>{
+    document.getElementById(`npd-${p}`).textContent=C.noPornDays[p]||0;
+    const bar=document.getElementById(`ms-${p}`);
+    bar.innerHTML=[7,30,60,90].map(m=>`<div class="ms ${(C.noPornDays[p]||0)>=m?(p==='p1'?'mg':'mv'):''}"></div>`).join('');
+  });
+}
+
+function renderAchievements(){
+  const pl1=getPersonLog(viewDate,'p1'), pl2=getPersonLog(viewDate,'p2');
+  const np1=C.noPornDays.p1||0, np2=C.noPornDays.p2||0;
+  const w1=pl1.water||0, w2=pl2.water||0;
+  const logDays=Object.keys(C.localLog).length;
+  const achs=[
+    {i:'🥚',n:'Egg Starter',d:'Log eggs habit',chk:()=>C.habits.some(h=>h.name.toLowerCase().includes('egg')&&(pl1.habits[h.id]||pl2.habits[h.id]))},
+    {i:'💪',n:'Gym Week',d:'7-day streak',chk:()=>Math.max(C.streaks.p1||0,C.streaks.p2||0)>=7},
+    {i:'💧',n:'Hydrated',d:'Hit water target',chk:()=>w1>=(C.profiles.p1.waterTarget||2)||w2>=(C.profiles.p2.waterTarget||2)},
+    {i:'🍫',n:'Choco Day',d:'Dark choc done',chk:()=>C.habits.some(h=>h.name.toLowerCase().includes('choc')&&(pl1.habits[h.id]||pl2.habits[h.id]))},
+    {i:'🧠',n:'Week Clean',d:'7 days clean',chk:()=>Math.max(np1,np2)>=7},
+    {i:'🌅',n:'All Meals',d:'All meals logged',chk:()=>C.meals.every(m=>(pl1.meals[m.id]&&pl1.meals[m.id].done)||(pl2.meals[m.id]&&pl2.meals[m.id].done))},
+    {i:'💑',n:'Power Couple',d:'Both 80%+ today',chk:()=>{const t=calcTotal();return calcScore(viewDate,'p1')/t>=0.8&&calcScore(viewDate,'p2')/t>=0.8;}},
+    {i:'🧬',n:'Food Logger',d:'Typed actual foods',chk:()=>C.meals.some(m=>(pl1.meals[m.id]&&pl1.meals[m.id].foods)||(pl2.meals[m.id]&&pl2.meals[m.id].foods))},
+    {i:'🏆',n:'30 Day Hero',d:'30 days clean',chk:()=>Math.max(np1,np2)>=30},
+    {i:'👑',n:'90 Day King',d:'Full brain reset',chk:()=>Math.max(np1,np2)>=90},
+    {i:'🔥',n:'On Fire',d:'30-day streak',chk:()=>Math.max(C.streaks.p1||0,C.streaks.p2||0)>=30},
+    {i:'📅',n:'Consistent',d:'60+ days logged',chk:()=>logDays>=60},
+  ];
+  document.getElementById('achGrid').innerHTML=achs.map(a=>{
+    const ul=a.chk();
+    return `<div class="ach ${ul?'ul':'lk'}"><div class="ach-i">${a.i}</div><div class="ach-n">${a.n}</div><div class="ach-d">${a.d}</div></div>`;
+  }).join('');
+}
+
+function renderMealsPage(){
+  const el=document.getElementById('meals-list');
+  if(!C.meals.length){ el.innerHTML='<div class="empty"><div class="empty-i">🍽️</div><div>No meal slots yet.</div></div>'; return; }
+  el.innerHTML=C.meals.map(m=>`
+    <div class="card" style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-size:14px;font-weight:600;">${m.name}</div>
+          <div style="font-size:11px;color:var(--dim);margin-top:3px;">${m.time}</div>
+          <div style="font-size:11px;color:var(--mut);margin-top:4px;">Suggestions: ${m.tags||'none'}</div>
+        </div>
+        <div style="display:flex;gap:5px;">
+          <button class="ibtn" onclick="openMealModal('${m.id}')">✏️</button>
+          <button class="ibtn del" onclick="delMealSlot('${m.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderHabitsPage(){
+  const el=document.getElementById('habits-list');
+  if(!C.habits.length){ el.innerHTML='<div class="empty" style="grid-column:span 2"><div class="empty-i">⭐</div><div>No habits yet.</div></div>'; return; }
+  el.innerHTML=C.habits.map(h=>{
+    const d1=getHabitDone(viewDate,'p1',h.id), d2=getHabitDone(viewDate,'p2',h.id);
+    return `<div class="hcard">
+      <div class="irow">
+        <div class="hico" style="margin:0;">${h.icon}</div>
+        <div style="display:flex;gap:4px;">
+          <button class="ibtn" onclick="openHabitModal('${h.id}')">✏️</button>
+          <button class="ibtn del" onclick="delHabit('${h.id}')">🗑</button>
+        </div>
+      </div>
+      <div class="hname">${h.name}</div>
+      <div class="hbtns">
+        <button class="hb ${d1?'dg':''}" onclick="togHabit('${h.id}','p1')">${(C.profiles.p1.name||'You').slice(0,5)}</button>
+        <button class="hb ${d2?'dv':''}" onclick="togHabit('${h.id}','p2')">${(C.profiles.p2.name||'Partner').slice(0,5)}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSettingsPage(){
+  document.getElementById('s-meals').innerHTML=C.meals.map(m=>`
+    <div class="srow2">
+      <div><div class="slbl">${m.name}</div><div class="ssub">${m.time}</div></div>
+      <div style="display:flex;gap:5px;">
+        <button class="ibtn" onclick="openMealModal('${m.id}')">✏️</button>
+        <button class="ibtn del" onclick="delMealSlot('${m.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('s-habits').innerHTML=C.habits.map(h=>`
+    <div class="srow2">
+      <div class="slbl">${h.icon} ${h.name}</div>
+      <div style="display:flex;gap:5px;">
+        <button class="ibtn" onclick="openHabitModal('${h.id}')">✏️</button>
+        <button class="ibtn del" onclick="delHabit('${h.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+// ════════════════════════════════════════════════
+// ANALYTICS
+// ════════════════════════════════════════════════
+async function loadAnalytics(){
+  const days=parseInt(document.getElementById('analPeriod').value)||30;
+  const el=document.getElementById('anal-content');
+  el.innerHTML='<div class="empty"><div class="empty-i">📊</div><div>Loading…</div></div>';
+
+  // Build from local log
+  const dates=[]; const now=new Date();
+  for(let i=days-1;i>=0;i--){ const d=new Date(now); d.setDate(now.getDate()-i); dates.push(d.toISOString().slice(0,10)); }
+
+  const p1n=C.profiles.p1.name, p2n=C.profiles.p2.name;
+  let p1pcts=[], p2pcts=[], p1kcals=[], p2kcals=[], p1prots=[], p2prots=[];
+  const habitStats={};
+  C.habits.forEach(h=>{ habitStats[h.id]={name:h.name,icon:h.icon,p1:0,p2:0,days:0}; });
+
+  dates.forEach(date=>{
+    const t=calcTotal();
+    const s1=calcScore(date,'p1'), s2=calcScore(date,'p2');
+    p1pcts.push({date,pct:t?Math.round(s1/t*100):0});
+    p2pcts.push({date,pct:t?Math.round(s2/t*100):0});
+
+    // calorie + protein totals
+    let k1=0,k2=0,pr1=0,pr2=0;
+    C.meals.forEach(m=>{
+      const ml1=getMealLog(date,'p1',m.id), ml2=getMealLog(date,'p2',m.id);
+      k1+=parseFloat(ml1.cal)||0; k2+=parseFloat(ml2.cal)||0;
+      pr1+=parseFloat(ml1.protein)||0; pr2+=parseFloat(ml2.protein)||0;
+    });
+    if(k1>0) p1kcals.push(k1); if(k2>0) p2kcals.push(k2);
+    if(pr1>0) p1prots.push(pr1); if(pr2>0) p2prots.push(pr2);
+
+    C.habits.forEach(h=>{
+      habitStats[h.id].days++;
+      if(getHabitDone(date,'p1',h.id)) habitStats[h.id].p1++;
+      if(getHabitDone(date,'p2',h.id)) habitStats[h.id].p2++;
+    });
+  });
+
+  const avg=arr=>arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length):0;
+  const avgPct1=avg(p1pcts.map(d=>d.pct)), avgPct2=avg(p2pcts.map(d=>d.pct));
+  const w1=avg(dates.map(d=>getWater(d,'p1')*10)/10), w2=avg(dates.map(d=>getWater(d,'p2')*10)/10);
+
+  const recentDates=dates.slice(-14);
+
+  el.innerHTML=`
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-val gc">${avgPct1}%</div><div class="stat-lbl">${p1n} avg compliance</div></div>
+      <div class="stat-card"><div class="stat-val vc">${avgPct2}%</div><div class="stat-lbl">${p2n} avg compliance</div></div>
+      <div class="stat-card"><div class="stat-val gc">${avg(dates.map(d=>(getWater(d,'p1')||0)*100)/100).toFixed(1)}L</div><div class="stat-lbl">${p1n} avg water/day</div></div>
+      <div class="stat-card"><div class="stat-val vc">${avg(dates.map(d=>(getWater(d,'p2')||0)*100)/100).toFixed(1)}L</div><div class="stat-lbl">${p2n} avg water/day</div></div>
+      ${p1kcals.length?`<div class="stat-card"><div class="stat-val gc">${avg(p1kcals)}</div><div class="stat-lbl">${p1n} avg kcal/day</div></div>`:''}
+      ${p2kcals.length?`<div class="stat-card"><div class="stat-val vc">${avg(p2kcals)}</div><div class="stat-lbl">${p2n} avg kcal/day</div></div>`:''}
+      ${p1prots.length?`<div class="stat-card"><div class="stat-val gc">${avg(p1prots)}g</div><div class="stat-lbl">${p1n} avg protein/day</div></div>`:''}
+      ${p2prots.length?`<div class="stat-card"><div class="stat-val vc">${avg(p2prots)}g</div><div class="stat-lbl">${p2n} avg protein/day</div></div>`:''}
+      <div class="stat-card"><div class="stat-val gc">${C.noPornDays.p1||0}</div><div class="stat-lbl">${p1n} clean days</div></div>
+      <div class="stat-card"><div class="stat-val vc">${C.noPornDays.p2||0}</div><div class="stat-lbl">${p2n} clean days</div></div>
+    </div>
+
+    <div class="sec">${p1n} — daily compliance</div>
+    <div class="card"><div>${recentDates.map(d=>{const pct=p1pcts.find(x=>x.date===d)?.pct||0; return `<div class="crow"><div class="clbl">${d.slice(5)}</div><div class="cbg"><div class="cb" style="width:${pct}%;background:var(--g);"></div></div><div class="cval">${pct}%</div></div>`}).join('')}</div></div>
+
+    <div class="sec">${p2n} — daily compliance</div>
+    <div class="card"><div>${recentDates.map(d=>{const pct=p2pcts.find(x=>x.date===d)?.pct||0; return `<div class="crow"><div class="clbl">${d.slice(5)}</div><div class="cbg"><div class="cb" style="width:${pct}%;background:var(--v);"></div></div><div class="cval">${pct}%</div></div>`}).join('')}</div></div>
+
+    <div class="sec">Habit breakdown</div>
+    <div class="card"><div>
+      ${Object.values(habitStats).map(h=>{
+        const p1p=h.days?Math.round(h.p1/h.days*100):0;
+        const p2p=h.days?Math.round(h.p2/h.days*100):0;
+        return `<div style="margin-bottom:11px;">
+          <div style="font-size:11px;margin-bottom:4px;">${h.icon} ${h.name}</div>
+          <div class="crow"><div class="clbl gc" style="font-size:9px;">${p1n.slice(0,4)}</div><div class="cbg"><div class="cb" style="width:${p1p}%;background:var(--g);"></div></div><div class="cval">${p1p}%</div></div>
+          <div class="crow"><div class="clbl vc" style="font-size:9px;">${p2n.slice(0,4)}</div><div class="cbg"><div class="cb" style="width:${p2p}%;background:var(--v);"></div></div><div class="cval">${p2p}%</div></div>
+        </div>`;
+      }).join('')}
+    </div></div>`;
+}
+
+// ════════════════════════════════════════════════
+// HISTORY LOG
+// ════════════════════════════════════════════════
+async function loadHistory(){
+  const el=document.getElementById('history-log');
+  el.innerHTML='<div class="empty"><div class="empty-i">⏳</div><div>Fetching…</div></div>';
+  const dates=Object.keys(C.localLog).sort().reverse().slice(0,30);
+  if(!dates.length){ el.innerHTML='<div class="empty"><div class="empty-i">📋</div><div>No history yet.</div></div>'; return; }
+  const p1n=C.profiles.p1.name, p2n=C.profiles.p2.name;
+  el.innerHTML=dates.map(date=>{
+    const t=calcTotal(); const s1=calcScore(date,'p1'), s2=calcScore(date,'p2');
+    const p1p=t?Math.round(s1/t*100):0, p2p=t?Math.round(s2/t*100):0;
+    const pl1=getPersonLog(date,'p1'), pl2=getPersonLog(date,'p2');
+    const foodLines=C.meals.map(m=>{
+      const f1=(pl1.meals[m.id]?.foods||'').trim();
+      const f2=(pl2.meals[m.id]?.foods||'').trim();
+      if(!f1&&!f2) return '';
+      return `<div style="font-size:10px;color:var(--mut);margin-top:3px;"><b style="color:var(--dim);">${m.name}:</b> ${f1?`${p1n}: ${f1}`:''}${f1&&f2?' | ':''}${f2?`${p2n}: ${f2}`:''}</div>`;
+    }).filter(Boolean).join('');
+    return `<div style="padding:11px 0;border-bottom:1px solid var(--bd);">
+      <div style="font-size:12px;font-weight:600;margin-bottom:5px;cursor:pointer;" onclick="viewDate='${date}';applyDate();goto('today');">📅 ${date} — tap to view</div>
+      <div class="crow"><div class="clbl gc" style="font-size:9px;">${p1n.slice(0,4)}</div><div class="cbg"><div class="cb" style="width:${p1p}%;background:var(--g);"></div></div><div class="cval">${p1p}%</div></div>
+      <div class="crow"><div class="clbl vc" style="font-size:9px;">${p2n.slice(0,4)}</div><div class="cbg"><div class="cb" style="width:${p2p}%;background:var(--v);"></div></div><div class="cval">${p2p}%</div></div>
+      ${foodLines}
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════
+// EXPORT
+// ════════════════════════════════════════════════
+function exportCSV(){
+  const p1n=C.profiles.p1.name, p2n=C.profiles.p2.name;
+  const headers=['Date','Person','Meal','Foods Eaten','Calories','Protein(g)','Done'];
+  const rows=[headers.join(',')];
+  Object.keys(C.localLog).sort().forEach(date=>{
+    ['p1','p2'].forEach(p=>{
+      const pn=p==='p1'?p1n:p2n;
+      C.meals.forEach(m=>{
+        const ml=getMealLog(date,p,m.id);
+        rows.push([date,pn,m.name,`"${ml.foods||''}"`,ml.cal||'',ml.protein||'',ml.done?'Yes':'No'].join(','));
+      });
+      C.habits.forEach(h=>{ rows.push([date,pn,h.name,'','','',getHabitDone(date,p,h.id)?'Yes':'No'].join(',')); });
+      rows.push([date,pn,'Water','','','',getWater(date,p)+'L'].join(','));
+    });
+  });
+  const blob=new Blob([rows.join('\n')],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`vitalpair_${today()}.csv`; a.click();
+  URL.revokeObjectURL(url); toast('CSV exported ✅');
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(C,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`vitalpair_backup_${today()}.json`; a.click();
+  URL.revokeObjectURL(url); toast('JSON exported ✅');
+}
+function importJSON(input){
+  const file=input.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=e=>{ try{ if(!confirm('Replace all data?')) return; C={...dflt(),...JSON.parse(e.target.result)}; saveC(); render(); toast('Imported ✅'); }catch(err){ toast('Invalid file'); } };
+  r.readAsText(file); input.value='';
+}
+
+// ════════════════════════════════════════════════
+// MEAL SLOT CRUD
+// ════════════════════════════════════════════════
+let editMealId=null, editHabitId=null;
+function openMealModal(id){
+  editMealId=id||null;
+  const m=id?C.meals.find(x=>x.id===id):null;
+  document.getElementById('meal-mod-t').textContent=id?'Edit Meal Slot':'Add Meal Slot';
+  document.getElementById('mm-name').value=m?m.name:'';
+  document.getElementById('mm-time').value=m?m.time:'';
+  document.getElementById('mm-tags').value=m?m.tags||'':'';
+  openMod('modal-meal');
+}
+async function saveMealSlot(){
+  const name=document.getElementById('mm-name').value.trim();
+  const time=document.getElementById('mm-time').value.trim();
+  const tags=document.getElementById('mm-tags').value.trim();
+  if(!name){toast('Enter slot name'); return;}
+  if(editMealId){ const m=C.meals.find(x=>x.id===editMealId); if(m){m.name=name;m.time=time;m.tags=tags;} }
+  else C.meals.push({id:'m'+Date.now(),name,time,tags});
+  saveC(); closeMod('modal-meal'); render(); toast('Meal slot saved ✅');
+}
+async function delMealSlot(id){ if(!confirm('Delete this meal slot?')) return; C.meals=C.meals.filter(m=>m.id!==id); saveC(); render(); toast('Removed'); }
+
+// ════════════════════════════════════════════════
+// HABIT CRUD
+// ════════════════════════════════════════════════
+function openHabitModal(id){
+  editHabitId=id||null;
+  const h=id?C.habits.find(x=>x.id===id):null;
+  document.getElementById('habit-mod-t').textContent=id?'Edit Habit':'Add Habit';
+  document.getElementById('hm-name').value=h?h.name:'';
+  document.getElementById('hm-icon').value=h?h.icon:'';
+  openMod('modal-habit');
+}
+async function saveHabit(){
+  const name=document.getElementById('hm-name').value.trim();
+  const icon=document.getElementById('hm-icon').value.trim()||'⭐';
+  if(!name){toast('Enter habit name'); return;}
+  if(editHabitId){ const h=C.habits.find(x=>x.id===editHabitId); if(h){h.name=name;h.icon=icon;} }
+  else C.habits.push({id:'h'+Date.now(),name,icon});
+  saveC(); closeMod('modal-habit'); render(); toast('Habit saved ✅');
+}
+async function delHabit(id){ if(!confirm('Delete habit?')) return; C.habits=C.habits.filter(h=>h.id!==id); saveC(); render(); toast('Removed'); }
+
+// ════════════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════════════
+function saveCfgLive(){
+  C.profiles.p1.name=document.getElementById('s-p1').value||'You';
+  C.profiles.p2.name=document.getElementById('s-p2').value||'Partner';
+  C.profiles.p1.waterTarget=parseFloat(document.getElementById('s-wt1').value)||2;
+  C.profiles.p2.waterTarget=parseFloat(document.getElementById('s-wt2').value)||2;
+  C.who=document.getElementById('s-who').value;
+  C.apiUrl=document.getElementById('s-url').value.trim();
+  saveC(); render();
+}
+async function reconnect(){ C.apiUrl=document.getElementById('s-url').value.trim(); saveC(); await syncAll(); }
+function resetApp(){ if(!confirm('Reset everything?')) return; localStorage.removeItem(LS); location.reload(); }
+
+// ════════════════════════════════════════════════
+// ONBOARDING
+// ════════════════════════════════════════════════
+async function testUrl(){
+  const url=document.getElementById('g-url').value.trim();
+  if(!url){toast('Paste URL first'); return;}
+  setSS('loading','Testing…');
+  try{
+    const res=await fetch(`${url}?action=getConfig`);
+    const data=await res.json();
+    C.apiUrl=url; saveC();
+    document.getElementById('gs1').classList.remove('on');
+    document.getElementById('gs2').classList.add('on');
+  }catch(e){ toast('Connection failed — check URL'); setSS('err','Connection failed'); }
+}
+function skipLocal(){ C.useLocal=true; C.apiUrl=''; saveC(); document.getElementById('gs1').classList.remove('on'); document.getElementById('gs2').classList.add('on'); }
+function saveProfile(){
+  C.profiles.p1.name=document.getElementById('g-p1').value.trim()||'You';
+  C.who=document.getElementById('g-who').value;
+  C.profiles.p2.name=document.getElementById('g-p2').value.trim()||'Partner';
+  C.profiles.p1.waterTarget=parseFloat(document.getElementById('g-wt1').value)||2;
+  C.profiles.p2.waterTarget=parseFloat(document.getElementById('g-wt2').value)||2;
+  C.setup=true; saveC();
+  document.getElementById('gate').style.display='none';
+  document.getElementById('nav').style.display='flex';
+  init();
+}
+
+// ════════════════════════════════════════════════
+// NAV / MODAL / TOAST
+// ════════════════════════════════════════════════
+function goto(id){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById(`pg-${id}`).classList.add('on');
+  const map={today:0,meals:1,habits:2,analytics:3,data:4,settings:5};
+  document.querySelectorAll('.nb')[map[id]]?.classList.add('on');
+  if(id==='analytics') loadAnalytics();
+  if(id==='data') loadHistory();
+}
+function openMod(id){ document.getElementById(id).classList.add('open'); }
+function closeMod(id){ document.getElementById(id).classList.remove('open'); editMealId=null; editHabitId=null; }
+function selProf(p){ document.getElementById('ptab-p1').className='ptab'+(p==='p1'?' sg':''); document.getElementById('ptab-p2').className='ptab'+(p==='p2'?' sv':''); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+async function init(){
+  document.getElementById('dateInp').value=viewDate;
+  render();
+  await pullFromSheet(viewDate);
+}
+
+loadC();
+if(C.setup){
+  document.getElementById('gate').style.display='none';
+  document.getElementById('nav').style.display='flex';
+  init();
+} else {
+  if(C.apiUrl) document.getElementById('g-url').value=C.apiUrl;
+  setSS('err','Not connected');
+}
+setInterval(syncAll, 5*60*1000);
+</script>
+</body>
+</html>
