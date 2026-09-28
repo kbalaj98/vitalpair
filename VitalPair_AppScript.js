@@ -203,40 +203,68 @@ function getLogs(from, to) {
 
 function saveLog(body) {
   var sh      = getSheet(SHEET_LOG, LOG_HEADERS);
-  var date    = (body && body.date)    ? body.date    : '';
-  var person  = (body && body.person)  ? body.person  : '';
-  var entries = (body && body.entries) ? body.entries : [];
+  var date    = (body && body.date)    ? String(body.date)   : '';
+  var person  = (body && body.person)  ? String(body.person) : '';
+  var entries = (body && body.entries) ? body.entries        : [];
 
   if (!date || !person) {
     return {ok: false, error: 'Missing date or person'};
   }
 
-  // Remove existing rows for date+person (iterate backwards)
-  var data = sh.getDataRange().getValues();
-  for (var i = data.length - 1; i >= 1; i--) {
-    if (String(data[i][0]) === date && String(data[i][1]) === person) {
-      sh.deleteRow(i + 1);
-    }
+  // Use lock to prevent concurrent writes causing duplicates
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000); // wait up to 10s for lock
+  } catch(e) {
+    return {ok: false, error: 'Could not get lock: ' + e.toString()};
   }
 
-  // Append fresh entries
-  for (var e = 0; e < entries.length; e++) {
-    var en = entries[e];
-    sh.appendRow([
-      date,
-      person,
-      en.type     || '',
-      en.itemId   || '',
-      en.itemName || '',
-      en.done ? 'true' : 'false',
-      en.value    || '',
-      en.foods    || '',
-      en.cal      || '',
-      en.protein  || '',
-      en.notes    || ''
-    ]);
+  try {
+    // Get all data fresh after acquiring lock
+    var data = sh.getDataRange().getValues();
+
+    // Collect row indices to delete (bottom to top to preserve indices)
+    var toDelete = [];
+    for (var i = data.length - 1; i >= 1; i--) {
+      if (String(data[i][0]) === date && String(data[i][1]) === person) {
+        toDelete.push(i + 1);
+      }
+    }
+
+    // Delete from bottom to top so row numbers stay valid
+    for (var d = 0; d < toDelete.length; d++) {
+      sh.deleteRow(toDelete[d]);
+    }
+
+    // Append fresh entries in one batch
+    var newRows = [];
+    for (var e = 0; e < entries.length; e++) {
+      var en = entries[e];
+      newRows.push([
+        date,
+        person,
+        en.type     || '',
+        en.itemId   || '',
+        en.itemName || '',
+        en.done ? 'true' : 'false',
+        en.value    !== undefined ? en.value : '',
+        en.foods    || '',
+        en.cal      || '',
+        en.protein  || '',
+        en.notes    || ''
+      ]);
+    }
+
+    if (newRows.length > 0) {
+      var startRow = sh.getLastRow() + 1;
+      sh.getRange(startRow, 1, newRows.length, LOG_HEADERS.length).setValues(newRows);
+    }
+
+    return {ok: true, saved: newRows.length};
+
+  } finally {
+    lock.releaseLock();
   }
-  return {ok: true, saved: entries.length};
 }
 
 // ── ANALYTICS ────────────────────────────────────────────
