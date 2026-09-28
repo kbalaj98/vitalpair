@@ -268,10 +268,10 @@ select.inp{appearance:none;}
       <div class="lbl">Apps Script Web App URL</div>
       <input class="inp" id="g-url" placeholder="https://script.google.com/macros/s/.../exec">
       <div class="btn-row">
-        <button class="btn btn-g btn-full" onclick="testUrl()">Connect</button>
+        <button class="btn btn-g btn-full" id="btn-testurl">Connect</button>
       </div>
       <div style="text-align:center;margin-top:11px;">
-        <span style="font-size:11px;color:var(--dim);cursor:pointer;text-decoration:underline;" onclick="skipLocal()">Use offline / local only</span>
+        <span style="font-size:11px;color:var(--dim);cursor:pointer;text-decoration:underline;" id="btn-skiplocal">Use offline / local only</span>
       </div>
     </div>
     <!-- Step 2: Loading -->
@@ -299,7 +299,7 @@ select.inp{appearance:none;}
       </div>
       <div class="lbl">I am</div>
       <select class="inp" id="g-who"><option value="p1">Person 1</option><option value="p2">Person 2</option></select>
-      <div class="btn-row"><button class="btn btn-g btn-full" onclick="saveProfile()">Save & Start</button></div>
+      <div class="btn-row"><button class="btn btn-g btn-full" id="btn-saveprofile">Save & Start</button></div>
     </div>
 
     <!-- Step 4: Returning user — just pick who you are -->
@@ -307,7 +307,7 @@ select.inp{appearance:none;}
       <div class="gtitle">Welcome back!</div>
       <div style="font-size:12px;color:var(--dim);margin-bottom:16px;">Profiles loaded from Sheet. Who are you on this device?</div>
       <div id="gs4-profiles" style="display:flex;gap:10px;margin-bottom:16px;"></div>
-      <div class="btn-row"><button class="btn btn-g btn-full" onclick="confirmWho()">Start Tracking</button></div>
+      <div class="btn-row"><button class="btn btn-g btn-full" id="btn-confirmwho">Start Tracking</button></div>
     </div>
   </div>
 </div>
@@ -526,7 +526,7 @@ select.inp{appearance:none;}
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script defer>
 // ════════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════════
@@ -1463,6 +1463,19 @@ async function init(){
   render();
   await pullFromSheet(viewDate);
 }
+
+// ════════════════════════════════════════════════
+// WIRE UP GATE BUTTONS via addEventListener
+// (avoids ReferenceError from inline onclick)
+// ════════════════════════════════════════════════
+function wireButtons(){
+  var b;
+  b=document.getElementById('btn-testurl');    if(b) b.addEventListener('click', testUrl);
+  b=document.getElementById('btn-skiplocal');  if(b) b.addEventListener('click', skipLocal);
+  b=document.getElementById('btn-saveprofile');if(b) b.addEventListener('click', saveProfile);
+  b=document.getElementById('btn-confirmwho'); if(b) b.addEventListener('click', confirmWho);
+}
+document.addEventListener('DOMContentLoaded', wireButtons);
 
 // Expose all functions globally so onclick handlers work
 window.testUrl=testUrl; window.skipLocal=skipLocal; window.saveProfile=saveProfile;
